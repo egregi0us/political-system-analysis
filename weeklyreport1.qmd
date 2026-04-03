@@ -1,0 +1,22 @@
+---
+title: "Unit 1 Project, Report 1"
+format: html
+editor: visual
+---
+
+#### Data
+
+```{r}
+install.packages("tidytuesdayR")
+tuesdata <- tidytuesdayR::tt_load('2024-11-05')
+```
+
+#### Data Context
+
+#### Cleaning
+
+#### Two Research Questions (this Data)
+
+#### Two Research Questions (Supplemental Data)
+
+#### Two Visualizations
