@@ -13,10 +13,23 @@ tuesdata <- tidytuesdayR::tt_load('2024-11-05')
 
 #### Data Context
 
+This data shows almost/every country and different aspects about the style of their government. Some of these aspects include the category of regime, status of commonwealth vs. monarchy, communist nature, and details of their parliament (if they have one of course). It even includes aspects of delayed/free and fair elections which I think could be very useful towards deducing interesting connections between a susceptibility towards more authoritarian states and delayed elections being regular.
+
 #### Cleaning
+
+The most present clue I saw for data cleaning in this set was the amount of NA's there were for different variables. This makes total sense and was unavoidable due to the nature of the dataset, since many questions were simply unanswerable if you did not have the corresponding form of government. Examples of this include an inability to have an entry for "Number of parliamentary chambers" if you don't have a parliament, or "Election system" if you don't have some semblance of a democratic system.
 
 #### Two Research Questions (this Data)
 
+1.  Can the "postponed election" variable predict a change from a democracy to an authoritarian regime?
+2.  Is there a significant relationship between Election System and Electoral Category Index?
+
 #### Two Research Questions (Supplemental Data)
 
+1.  It would be really nice if we had some supplemental data on Human Development Index, because then naturally my question would be, is there a relationship between HDI and Election Systems.
+2.  I would also like to focus on the decades at a time, and some quantitative data about percentage of population lost in wars per decade, then try and find some relationship between war death and average regime category index per decade specifically for non-democratic countries.
+
 #### Two Visualizations
+
+1.  ![Electoral System v. Electoral Category Index](images/visual3.png)
+2.  ![Civilian Deaths v. Regime Index](images/visual2.png)
