@@ -7,6 +7,7 @@ editor: visual
 #### Data
 
 ```{r}
+#| eval: false
 install.packages("tidytuesdayR")
 tuesdata <- tidytuesdayR::tt_load('2024-11-05')
 ```
