@@ -39,3 +39,28 @@ The most present clue I saw for data cleaning in this set was the amount of NA's
 
 
 ## Week 2
+
+```{r}
+dem_df<- tuesdata$democracy_data
+```
+
+### Two Summaries (Unaltered Columns)
+
+iterate & custom function: percentage of recorded years where each country was a democracy (is_democracy==TRUE)
+summary 2: total representatives from each country
+
+### Two Summaries (Altered Columns)
+
+iterate & custom function: average democracy index over recorded history per country
+summary 2: ratio of lower to upper house members
+
+```{r}
+house_ratio <- dem_df %>%
+  filter(is.na(lower_house_members)==FALSE & is.na(upper_house_members)==FALSE)%>%
+  mutate(chamber_ratio = lower_house_members/upper_house_members)
+```
+
+
+
+
+
