@@ -52,6 +52,20 @@ summary 2: total representatives from each country
 ### Two Summaries (Altered Columns)
 
 iterate & custom function: average democracy index over recorded history per country
+
+```{r}
+avg_dem <- function(country) {
+  dem_df %>%
+    filter(country_name == country) %>%
+    summarize(avg = mean(spatial_democracy, na.rm = TRUE)) %>%
+    pull(avg)
+}
+
+avg_df <- dem_df %>%
+  distinct(country_name) %>%
+  mutate(Average_Democracy = map_dbl(country_name, avg_dem))
+```
+
 summary 2: ratio of lower to upper house members
 
 ```{r}
