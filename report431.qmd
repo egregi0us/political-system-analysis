@@ -49,7 +49,7 @@ dem_df<- tuesdata$democracy_data
 
 ### Two Summaries (Unaltered Columns)
 
-#### Summary 1: iterate & custom function: percentage of recorded years where each country was a democracy
+#### Summary 1: custom function: percentage of recorded years where each country was a democracy
 
 ```{r}
 democracy_data <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-11-05/democracy_data.csv')
@@ -68,7 +68,7 @@ democracy_data |>
   )
 ```
 
-#### Summary 2: total representatives from each country
+#### Summary 2: iterated total representatives from each country
 
 ```{r}
 democracy_data <- tuesdata$democracy_data
