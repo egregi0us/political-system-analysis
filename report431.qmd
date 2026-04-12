@@ -52,9 +52,13 @@ dem_df<- tuesdata$democracy_data
 #### Summary 1: iterate & custom function: percentage of recorded years where each country was a democracy
 
 ```{r}
+democracy_data <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-11-05/democracy_data.csv')
+countries <- unique(democracy_data$country_code)
+
 democ_func <- function(x){
   mean(x, na.rm = TRUE) * 100
 }
+
 democracy_data |>
   group_by(country_code) |>
   summarize(
