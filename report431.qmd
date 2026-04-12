@@ -1,5 +1,5 @@
 ---
-title: "Unit 1 Project"
+title: "Unit 1 Project: Geopolitical System Analysis"
 format: html
 editor: visual
 ---
@@ -9,9 +9,12 @@ editor: visual
 ```{r}
 #| eval: false
 install.packages("tidytuesdayR")
-tuesdata <- tidytuesdayR::tt_load('2024-11-05')
 ```
 
+```{r}
+tuesdata <- tidytuesdayR::tt_load('2024-11-05')
+library(tidyverse)
+```
 ## Week 1
 
 #### Data Context
@@ -46,12 +49,51 @@ dem_df<- tuesdata$democracy_data
 
 ### Two Summaries (Unaltered Columns)
 
-iterate & custom function: percentage of recorded years where each country was a democracy (is_democracy==TRUE)
-summary 2: total representatives from each country
+#### Summary 1: iterate & custom function: percentage of recorded years where each country was a democracy
+
+```{r}
+democ_func <- function(x){
+  mean(x, na.rm = TRUE) * 100
+}
+democracy_data |>
+  group_by(country_code) |>
+  summarize(
+    total_years = sum(!is.na(is_democracy)),
+    democratic_years = sum(is_democracy, na.rm = TRUE),
+    pct_democ = democ_func(is_democracy)
+  )
+```
+
+#### Summary 2: total representatives from each country
+
+```{r}
+democracy_data <- tuesdata$democracy_data
+countries <- unique(democracy_data$country_name)
+total_reps <- numeric(length(countries))
+
+for (i in seq_along(countries)) {
+  this_country <- countries[i]
+  
+  total_reps[i] <- sum(
+    democracy_data$lower_house_members[democracy_data$country_name == this_country],
+    na.rm = TRUE)}
+
+country_rep_summary <- data.frame(
+  country_name = countries,
+  total_lower_house_members = total_reps)
+
+country_rep_summary <- country_rep_summary[order(-country_rep_summary$total_lower_house_members), ]
+
+
+knitr::kable(
+  head(country_rep_summary, 20),
+  col.names = c("Country", "Total Lower House Members"),
+  caption = "Total lower house members by country")
+```
 
 ### Two Summaries (Altered Columns)
 
-iterate & custom function: average democracy index over recorded history per country
+#### Summary 1: Custom function w/ iteration - average democracy index over recorded history per country
 
 ```{r}
 avg_dem <- function(country) {
@@ -64,14 +106,20 @@ avg_dem <- function(country) {
 avg_df <- dem_df %>%
   distinct(country_name) %>%
   mutate(Average_Democracy = map_dbl(country_name, avg_dem))
+
+head(avg_df)
 ```
 
-summary 2: ratio of lower to upper house members
+#### Summary 2: ratio of lower to upper house members
 
 ```{r}
 house_ratio <- dem_df %>%
   filter(is.na(lower_house_members)==FALSE & is.na(upper_house_members)==FALSE)%>%
   mutate(chamber_ratio = lower_house_members/upper_house_members)
+
+house_ratio %>%
+  select(country_name,chamber_ratio)%>%
+  head(30)
 ```
 
 
