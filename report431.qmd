@@ -127,6 +127,37 @@ house_ratio %>%
 ```
 
 
+## Week 3
+
+#### Population API
+```{r}
+#| eval: false
+
+library(httr)
+library(tidyjson)
+library(jsonlite)
+library(tidyverse)
+library(glue)
+```
+
+```{r}
+base_url <- "https://api.api-ninjas.com/v1/population"
+
+api <- "T3YcM1il6uhoPDhXBQP5XYgMnkY40zEF6boE3DBn"
+```
+
+```{r}
+
+get_pop_data <- function(country) {
+  country_url <- glue("{base_url}?country={country}")
+  countries <- GET(country_url, add_headers("X-Api-Key" = "T3YcM1il6uhoPDhXBQP5XYgMnkY40zEF6boE3DBn"))
+  countries_data <- fromJSON(content(countries, "text"))
+  return(countries_data)
+}
+
+```
+
+
 
 
 
