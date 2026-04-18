@@ -147,15 +147,36 @@ api <- "T3YcM1il6uhoPDhXBQP5XYgMnkY40zEF6boE3DBn"
 ```
 
 ```{r}
+#| eval: false
 
 get_pop_data <- function(country) {
-  country_url <- glue("{base_url}?country={country}")
-  countries <- GET(country_url, add_headers("X-Api-Key" = "T3YcM1il6uhoPDhXBQP5XYgMnkY40zEF6boE3DBn"))
-  countries_data <- fromJSON(content(countries, "text"))
+  country_url <- glue("{base_url}?country={URLencode(country)}")
+  countries <- GET(country_url, add_headers("X-Api-Key" = api))
+  tx <- content(countries, "text", encoding = "UTF-8")
+  if (tx==""){
+    return(NA)
+  }
+  countries_data <- fromJSON(tx)
   return(countries_data)
 }
 
 ```
+
+```{r}
+pop_data <- map(unique(dem_df$country_name), .f = get_pop_data)
+```
+
+```{r}
+clean <- pop_data %>%
+  keep(~ length(.x)>0)
+```
+
+
+
+
+
+
+
 
 
 
