@@ -170,10 +170,11 @@ get_pop_data <- function(country) {
 #### Mapping the function to each country
 
 ```{r}
+#|eval: false
 pop_data <- map(unique(dem_df$country_name), .f = get_pop_data)
 ```
 
-####
+#### So I hopefully don't have to call an API a million times, (used Chat suggestions that it was RDS and not CSV).
 
 ```{r}
 saveRDS(pop_data,"pop_data.rds")
@@ -187,38 +188,51 @@ clean_df <- pop_data %>%
   keep(~ length(.x)>0) %>%
   map(~.x %>% select(country, year,population)) %>%
   bind_rows()
+
+head(clean_df)
 ```
 
-#### making the data match 
+#### Making the data match 
 
 ```{r}
 dem2_df <- dem_df %>%
   filter(year>=1955 & year%%5==0)%>%
   rename(country = "country_name")
+
+head(dem2_df)
 ```
 
 ```{r}
 clean2_df <- clean_df %>%
   filter(year%%5==0) %>%
   arrange(country, year)
+
+head(clean2_df)
 ```
 
 #### Joining data into one data frame
 
 ```{r}
 final_df <- left_join(dem2_df, clean2_df, by = c("country", "year"))
+
+head(final_df[c("country","year","population")])
 ```
 
-### final_df now contains populations for each country every five years. This
-### will be really useful because now we can adjust representation for population.
+#### final_df now contains populations for each country every five years. This
+#### will be really useful because now we can adjust representation for population.
 
 ## Data Summary 1 (Population adjusted representation)
 
+
+#### Create pop_prop column for representation adjusted for population (used Chat for help with the function rowSums instead of having to define a seperate function to add)
+
 ```{r}
+final_df <- final_df %>%
+  filter(is_democracy==TRUE)%>%
+  mutate(pop_prop = rowSums(cbind(upper_house_members,lower_house_members, third_house_members), na.rm=TRUE)/population)
 
+head(final_df[c("country", "year", "population","pop_prop")])
 ```
-
-
 
 
 
