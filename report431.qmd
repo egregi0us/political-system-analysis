@@ -129,9 +129,8 @@ house_ratio %>%
 
 ## Week 3
 
-#### Population API
+## Population API
 ```{r}
-#| eval: false
 
 library(httr)
 library(tidyjson)
@@ -146,8 +145,9 @@ base_url <- "https://api.api-ninjas.com/v1/population"
 api <- "T3YcM1il6uhoPDhXBQP5XYgMnkY40zEF6boE3DBn"
 ```
 
+#### Creating a function for the API (specifically historical population)
+
 ```{r}
-#| eval: false
 
 get_pop_data <- function(country) {
   country_url <- glue("{base_url}?country={URLencode(country)}")
@@ -157,21 +157,66 @@ get_pop_data <- function(country) {
     return(NA)
   }
   countries_data <- fromJSON(tx)
+  if(is.null(countries_data$historical_population)) {
+    return(NULL)
+  }
+  countries_data <- countries_data$historical_population %>%
+    mutate(country = country)
   return(countries_data)
 }
 
 ```
 
+#### Mapping the function to each country
+
 ```{r}
 pop_data <- map(unique(dem_df$country_name), .f = get_pop_data)
 ```
 
+####
+
 ```{r}
-clean <- pop_data %>%
-  keep(~ length(.x)>0)
+saveRDS(pop_data,"pop_data.rds")
+pop_data <- read_rds("pop_data.rds")
 ```
 
+#### Scrapping NULL lists and narrowing down to population
 
+```{r}
+clean_df <- pop_data %>%
+  keep(~ length(.x)>0) %>%
+  map(~.x %>% select(country, year,population)) %>%
+  bind_rows()
+```
+
+#### making the data match 
+
+```{r}
+dem2_df <- dem_df %>%
+  filter(year>=1955 & year%%5==0)%>%
+  rename(country = "country_name")
+```
+
+```{r}
+clean2_df <- clean_df %>%
+  filter(year%%5==0) %>%
+  arrange(country, year)
+```
+
+#### Joining data into one data frame
+
+```{r}
+final_df <- left_join(dem2_df, clean2_df, by = c("country", "year"))
+```
+
+### final_df now contains populations for each country every five years. This
+### will be really useful because now we can adjust representation for population.
+
+## Data Summary 1 (Population adjusted representation)
+
+```{r}
+
+```
 
 
 
