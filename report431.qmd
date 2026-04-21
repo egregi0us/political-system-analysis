@@ -314,10 +314,127 @@ final_df <- final_df %>%
 head(final_df[c("country", "year", "population","pop_prop")])
 ```
 
-
 #### pop_prop represents the representative per person measurement, an population adjusted  representation number. This is calculuted by adding up all of the members of the houses per country and dividing it by their population.
 
+### CSV Reading
 
+```{r}
+happiness <- read_csv("C:/Users/grant/Downloads/whr_data.csv")
+# I'm not sure why there are empty columns beyond those we are using, the file very clearly only had 13 columns. I don't think this should be an issue, but we're not gonna be using that whole dataset anyway.
+```
+
+
+### Cleaning HDI data and merging with democracy data
+
+```{r}
+happiness_clean <- happiness %>%
+  select(
+    country_name = `Country name`,
+    year = Year,
+    well_being = `Life evaluation (3-year average)`)
+
+#find the years that both this data set and the dem_df covers, and then we'll filter the sets to match those years
+
+range(happiness_clean$year, na.rm = TRUE) # since 2011
+range(dem_df$year, na.rm = TRUE) # 1950 to 2020
+
+dem_overlap <- dem_df %>%
+  filter(year >= 2011)
+happiness_overlap <- happiness_clean %>%
+  filter(year <= 2020)
+
+# now we merge them into one data frame
+#hdiXdem_df <- dem_overlap %>%
+  #left_join(happiness_overlap, by = c("country_name", "year"))
+
+
+# this will weed out the countries that we weren't able to directly match by name
+# hdiXdem_df %>%
+# filter(is.na(well_being)) %>%
+#  distinct(country_name) %>%
+#  arrange(country_name)
+# so that gave 208 countries which surprised me because the names looked the same to me. this makes me believe i messed up on the joining of the dataframes.
+# i'm gonna try the join again, only based off name, not year as well
+
+# hdiXdem_df <- dem_overlap %>%
+ # left_join(happiness_overlap, by = "country_name")
+
+# okay that isn't what we want either, that gives us a many to many dataframe, which is bad, so what I'll do is take the average of the happiness index and democracy index across the years and compare those. For reference, we don't want the many to many dataframe because it has 13010 rows.
+
+# average of both data frames
+avg_dem <- dem_overlap %>%
+  group_by(country_name) %>%
+  summarize(avg_democracy = mean(spatial_democracy, na.rm = TRUE))
+
+avg_happiness <- happiness_overlap %>%
+  group_by(country_name) %>%
+  summarize(avg_well_being = mean(well_being, na.rm = TRUE))
+
+# new dataframe
+
+hdiXdem_df <- avg_dem %>%
+  left_join(avg_happiness, by = "country_name")
+
+# now check again for unmatched countries
+hdiXdem_df %>%
+  filter(is.na(avg_well_being)) %>%
+  distinct(country_name) %>%
+  arrange(country_name)
+#so that gives us 60 countries that are not in our happiness set that are in the democracy set. What we'll do now is use anti_join to see what countries are in the democracy set that are not in the happiness set, and vice versa.
+
+dem_not_happy <- anti_join(avg_dem, avg_happiness, by = "country_name")
+happy_not_dem <- anti_join(avg_happiness, avg_dem, by = "country_name")
+
+nrow(dem_not_happy)
+nrow(happy_not_dem)
+
+head(dem_not_happy, 20)
+happy_not_dem
+
+# after looking through it, it seems that the countries that were in dem_not_happy were a lot of small, island based nation states that don't necessarily need to be included for this to be a fair comparison. The countries in happy_not_dem were all countries with names that may be different between the two sets. these are the countries we will recode. Using my own imperfect analysis, I have chosen the countries I will use from this list of unmatched country names, and I will use this to find the names for those countries in the democracy df
+
+avg_dem %>% filter(str_detect(country_name, "Korea|Mold|Congo|Trinidad|Hong|Palest|Taiwan|Turkey|Czech|Gambia|Slov"))
+
+# now that we know the names of all the countries that we want in both data sets, I will fix the happiness dataset to match the names from the democracy set, and then we will use an inner join to only get the countries that we want.
+
+country_fix_happiness <- c(
+  "Congo" = "Congo, Republic of",
+  "Czechia" = "Czech Republic",
+  "Côte d’Ivoire" = "Ivory Coast",
+  "DR Congo" = "Congo, Dem. Rep.",
+  "Gambia" = "Gambia, The",
+  "Hong Kong SAR of China" = "Hong Kong",
+  "Lao PDR" = "Laos",
+  "Republic of Korea" = "Korea, Republic of",
+  "Republic of Moldova" = "Moldova",
+  "Russian Federation" = "Russia",
+  "Slovakia" = "Slovak Republic",
+  "State of Palestine" = "Palestine",
+  "Taiwan Province of China" = "Taiwan",
+  "Trinidad and Tobago" = "Trinidad &Tobago",
+  "Türkiye" = "Turkey",
+  "Viet Nam" = "Vietnam")
+
+avg_happiness_fixed <- happiness_overlap %>%
+  mutate(country_name = recode(country_name, !!!country_fix_happiness)) %>%
+  group_by(country_name) %>%
+  summarize(avg_well_being = mean(well_being, na.rm = TRUE), .groups = "drop")
+
+hdiXdem_df <- avg_dem %>%
+  inner_join(avg_happiness_fixed, by = "country_name")
+```
+
+
+#### Final HDI df combined with Population df
+
+```{r}
+happiness_clean_final<-happiness_clean %>%
+  filter(year<2021)
+```
+
+```{r}
+cleaner_df <- left_join(final_df2, happiness_clean_final, by = c("country_name","year"))
+```
 
 
 
