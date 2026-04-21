@@ -315,7 +315,7 @@ head(final_df[c("country", "year", "population","pop_prop")])
 ```
 
 
-
+#### pop_prop represents the representative per person measurement, an population adjusted  representation number. This is calculuted by adding up all of the members of the houses per country and dividing it by their population.
 
 
 
