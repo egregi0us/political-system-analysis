@@ -177,7 +177,11 @@ pop_data <- map(unique(dem_df$country_name), .f = get_pop_data)
 #### So I hopefully don't have to call an API a million times, (used Chat suggestions that it was RDS and not CSV).
 
 ```{r}
+#| eval: false
 saveRDS(pop_data,"pop_data.rds")
+```
+
+```{r}
 pop_data <- read_rds("pop_data.rds")
 ```
 
@@ -220,6 +224,82 @@ head(final_df[c("country","year","population")])
 
 #### final_df now contains populations for each country every five years. This
 #### will be really useful because now we can adjust representation for population.
+
+
+## API GDP Data
+
+```{r}
+base_url2 <- "https://api.api-ninjas.com/v1/gdp"
+```
+
+#### Creation of a function for the API
+
+```{r}
+
+get_gdp_data <- function(country) {
+  country_url2 <- glue("{base_url2}?country={URLencode(country)}")
+  countries2 <- GET(country_url2, add_headers("X-Api-Key" = api))
+  tx2 <- content(countries2, "text", encoding = "UTF-8")
+  if (tx2==""){
+    return(NA)
+  }
+  countries_data2 <- fromJSON(tx2)
+  if(is.null(countries_data2$gdp_per_capita_nominal)) {
+    return(NULL)
+  }
+  countries_data2 <- countries_data2 %>%
+    select(country, year, gdp_per_capita_nominal)
+  return(countries_data2)
+}
+
+```
+
+#### Mapping to each country
+
+```{r}
+#| eval: false
+gdp_data <- map(unique(dem_df$country_code), .f = get_gdp_data)
+```
+
+#### Saving to an RDS
+
+```{r}
+#| eval: false
+saveRDS(gdp_data,"gdp_data.rds")
+```
+
+```{r}
+gdp_data <- read_rds("gdp_data.rds")
+```
+
+#### Trying to clean up the df a little
+
+```{r}
+clean_df2 <- gdp_data %>%
+  keep(~ length(.x)>0) %>%
+  bind_rows()
+
+head(clean_df2)
+```
+
+#### Narrowing down the years to match
+
+```{r}
+dem3_df <- dem_df %>%
+  filter(year>=1980)%>%
+  rename(country = "country_code")
+
+head(dem3_df)
+```
+
+#### Binding the data frames together
+
+```{r}
+final_df2 <- left_join(dem3_df, clean_df2, by = c("country", "year"))
+
+head(final_df2[c("country","year","gdp_per_capita_nominal")])
+```
+
 
 ## Data Summary 1 (Population adjusted representation)
 
