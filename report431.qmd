@@ -424,6 +424,21 @@ hdiXdem_df <- avg_dem %>%
   inner_join(avg_happiness_fixed, by = "country_name")
 ```
 
+### Visualization (HDI vs. Democracy Index)
+
+```{r}
+ggplot(hdiXdem_df,
+       aes(x = avg_democracy, y = avg_well_being)) +
+  geom_point() +
+  labs(
+    x = "Average Democracy",
+    y = "Average Well-Being",
+    title = "Relationship Between Democracy and Well-Being"
+  ) +
+  theme_bw()
+```
+
+
 
 #### Final HDI df combined with Population df
 
