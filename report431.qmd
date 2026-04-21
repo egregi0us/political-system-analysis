@@ -449,6 +449,8 @@ happiness_clean_final<-happiness_clean %>%
 
 ```{r}
 cleaner_df <- left_join(final_df2, happiness_clean_final, by = c("country_name","year"))
+
+head(cleaner_df[c("country_name","year","gdp_per_capita_nominal","well_being")])
 ```
 
 
