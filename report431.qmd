@@ -2,7 +2,11 @@
 title: "Unit 1 Project: Geopolitical System Analysis"
 format: html
 editor: visual
+embed_resources: true
+code-fold: true
 ---
+
+#different code theme in the YAML
 
 #### Data
 
@@ -309,12 +313,12 @@ head(final_df2[c("country","year","gdp_per_capita_nominal")])
 ```{r}
 final_df <- final_df %>%
   filter(is_democracy==TRUE)%>%
-  mutate(pop_prop = rowSums(cbind(upper_house_members,lower_house_members, third_house_members), na.rm=TRUE)/population)
+  mutate(pop_prop = population/rowSums(cbind(upper_house_members,lower_house_members, third_house_members), na.rm=TRUE))
 
 head(final_df[c("country", "year", "population","pop_prop")])
 ```
 
-#### pop_prop represents the representative per person measurement, an population adjusted  representation number. This is calculuted by adding up all of the members of the houses per country and dividing it by their population.
+#### pop_prop represents the person per representative measurement, an population adjusted  representation number. This is calculuted by adding up all of the members of the houses per country and dividing it by their population.
 
 ### CSV Reading
 
@@ -453,5 +457,36 @@ cleaner_df <- left_join(final_df2, happiness_clean_final, by = c("country_name",
 head(cleaner_df[c("country_name","year","gdp_per_capita_nominal","well_being")])
 ```
 
+## new data???
+
+```{r}
+dem_index<-read.csv("democracy-index-eiu.csv")
+
+dem_index2<-dem_index %>%
+  rename(country = "Entity")%>%
+  rename(year="Year")%>%
+  filter(year>2006 & year%%5==0)
+```
+
+```{r}
+finalest_df <- final_df %>%
+  filter(!pop_prop == Inf)%>%
+```
+
+```{r}
+finalestest_df <- left_join(finalest_df, dem_index2, by = c("country","year"))
+```
+
+```{r}
+finalestest_df<- finalestest_df %>%
+  filter(year>2005)%>%
+  filter(!is.na(Democracy.Index))
+```
+
+```{r}
+sick_model <- lm(Democracy.Index~pop_prop, data = finalestest_df)
+
+summary(sick_model)
+```
 
 
