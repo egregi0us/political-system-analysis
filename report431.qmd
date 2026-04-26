@@ -503,8 +503,6 @@ scatter1 <- ggplot(
     plot.title = element_text(face = "bold")
   )
 
-
-scatter1
 ```
 
 ```{r} 
