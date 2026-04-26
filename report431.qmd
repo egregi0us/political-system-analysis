@@ -584,7 +584,7 @@ dem_index2<-dem_index %>%
 
 ```{r}
 finalest_df <- final_df %>%
-  filter(!pop_prop == Inf)%>%
+  filter(!pop_prop == Inf)
 ```
 
 ```{r}
