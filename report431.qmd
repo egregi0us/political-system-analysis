@@ -524,7 +524,8 @@ vis2 <- final_df |>
   select(country, spatial_democracy, pop_prop) |>
   mutate(region = countrycode(country,
                               origin = "country.name",
-                              destination = "continent"))
+                              destination = "continent")) |>
+  filter(!pop_prop==Inf)
 ```
 
 ```{r}
@@ -553,8 +554,7 @@ pop_dem <- ggplot(vis2, aes(x = pop_prop,
                             y = reorder(region, pop_prop),
                             fill = region)) +
   geom_density_ridges(alpha = 0.7, color = "black", scale = 1) +
-  scale_x_continuous(limits = c(0, 50000),
-                     labels = label_number(scale_cut = cut_short_scale())) +
+  scale_x_continuous(limits = c(0, 50000), labels = label_number(scale_cut = cut_short_scale())) +
   labs(x = "Person per Rep",
        y = " ") +
   scale_fill_brewer(palette = "Dark2") +
