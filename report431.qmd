@@ -141,6 +141,9 @@ library(tidyjson)
 library(jsonlite)
 library(tidyverse)
 library(glue)
+library(readxl)
+library(ggrepel)
+library(scales)
 ```
 
 ```{r}
@@ -457,7 +460,118 @@ cleaner_df <- left_join(final_df2, happiness_clean_final, by = c("country_name",
 head(cleaner_df[c("country_name","year","gdp_per_capita_nominal","well_being")])
 ```
 
-## new data???
+
+## Week 4
+
+
+### Visualization 1
+
+```{r}
+# Identifying which countries to label:
+top_wb  <- hdiXdem_df %>% slice_max(avg_well_being, n = 3, with_ties = FALSE)
+low_wb  <- hdiXdem_df %>% slice_min(avg_well_being, n = 3, with_ties = FALSE)
+top_dem <- hdiXdem_df %>% slice_max(avg_democracy, n = 2, with_ties = FALSE)
+low_dem <- hdiXdem_df %>% slice_min(avg_democracy, n = 2, with_ties = FALSE)
+
+label_countries <- bind_rows(top_wb, low_wb, top_dem, low_dem) %>%
+  distinct(country_name, .keep_all = TRUE)
+```
+
+```{r}
+scatter1 <- ggplot(
+  hdiXdem_df,
+  aes(x = avg_democracy, y = avg_well_being)
+) +
+  geom_point(size = 2.8, alpha = 0.85, color = "steelblue") +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 1, color = "orange") +
+  geom_text_repel(
+    data = label_countries,
+    aes(label = country_name),
+    size = 3,
+    max.overlaps = 20
+  ) +
+  scale_x_continuous(labels = scales::number_format(accuracy = 0.1)) +
+  scale_y_continuous(labels = scales::number_format(accuracy = 0.1)) +
+  labs(
+    title = "Democracy and Well-Being Are Positively Associated",
+    subtitle = "Country averages from 2011 to 2020",
+    x = "Average Spatial Democracy Score",
+    y = "Average Well-Being Score"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold")
+  )
+
+
+scatter1
+```
+
+```{r} 
+#| fig-alt: Scatter plot of average spatial democracy scores versus average well-being for countries between 2011 and 2020. Each point represents a country. The points form an upward pattern, indicating that countries with higher democracy scores tend to have higher average well-being. A few countries at the high end are Finland, Switzerland, and Australia, and a few countries at the low end are Burundi, Central African Republic, and South Sudan.
+scatter1
+```
+
+
+
+### Visualization 2
+
+Is there a relationship between person per representative and democracy index?
+
+```{r}
+library(countrycode)
+vis2 <- final_df |>
+  select(country, spatial_democracy, pop_prop) |>
+  mutate(region = countrycode(country,
+                              origin = "country.name",
+                              destination = "continent"))
+```
+
+```{r}
+library(cowplot)
+library(ggridges)
+library(scales)
+title_theme <- ggdraw() +
+  draw_label("Spatial Democracy Versus Person per Representative by Region",
+    fontfamily = "Courier",
+    fontface = "bold",
+    size = 9,
+    hjust = 0.42
+  )
+
+spa_dem <- ggplot(vis2, aes(x = spatial_democracy,
+                            y = reorder(region, spatial_democracy),
+                            fill = region)) +
+  geom_density_ridges(alpha = 0.7, color = "black", scale = 1) + 
+  scale_x_continuous(limits = c(0, 1)) +
+  labs(x = "Spatial Democracy Index",
+       y = " ") +
+  scale_fill_brewer(palette = "Dark2") +
+  guides(fill = "none")
+
+pop_dem <- ggplot(vis2, aes(x = pop_prop,
+                            y = reorder(region, pop_prop),
+                            fill = region)) +
+  geom_density_ridges(alpha = 0.7, color = "black", scale = 1) +
+  scale_x_continuous(limits = c(0, 50000),
+                     labels = label_number(scale_cut = cut_short_scale())) +
+  labs(x = "Person per Rep",
+       y = " ") +
+  scale_fill_brewer(palette = "Dark2") +
+  guides(fill = "none")
+
+gridofplots <- plot_grid(spa_dem, pop_dem, nrow = 1)
+
+plot_grid(title_theme,
+  gridofplots,
+  ncol = 1, rel_heights = c(0.2, 1.5, 0.1)
+)
+```
+
+
+
+
+### New Democracy Data Import
 
 ```{r}
 dem_index<-read.csv("democracy-index-eiu.csv")
@@ -483,10 +597,20 @@ finalestest_df<- finalestest_df %>%
   filter(!is.na(Democracy.Index))
 ```
 
-```{r}
-sick_model <- lm(Democracy.Index~pop_prop, data = finalestest_df)
 
-summary(sick_model)
+### Linear Regression with Democracy Index vs. Population Adjusted Representation
+
+```{r}
+cool_model <- lm(Democracy.Index~pop_prop, data = finalestest_df)
+
+summary(cool_model)
 ```
+
+We perform a two-sided t-test of the linear coefficient of the population adjusted representation variable. We conclude with a 95% level of confidence, and a p-value of 0.174 that there is no significant relationship between democracy index and population adjusted representation. This is an interesting conclusion because it seems counterintuitive that having more adjusted representation would have no relationship with democracy index.
+
+
+
+
+
 
 
