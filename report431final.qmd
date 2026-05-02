@@ -471,7 +471,7 @@ summary(spat_model)
 ```
 
 
-We perform a two-sided t-test of the linear coefficient of the population adjusted representation variable. We conclude with a 95% level of confidence, and a p-value of 3.4e-05 that there is a significant relationship between spatial democracy index and population adjusted representation. This is an interesting conclusion because 
+We perform a two-sided t-test of the linear coefficient of the population adjusted representation variable. We conclude with a 95% level of confidence, and a p-value of 3.4e-05 that there is a significant relationship between spatial democracy index and population adjusted representation. This is an interesting conclusion because this can actually show that the intuition that a more represented country is associated with a country with a better democracy. This can serve as a justification for popular political arguments such as an uncapped house in our own Congress. 
 
 
 
