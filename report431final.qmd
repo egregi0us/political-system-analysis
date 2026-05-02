@@ -292,7 +292,7 @@ finalestest_df<- finalestest_df %>%
   filter(year>2005)%>%
   filter(!is.na(Democracy.Index))
 
-head(finalestest_df)
+head(finalestest_df[c("country","year","Democracy.Index")])
 ```
 
 #### Data Vis 1
@@ -308,6 +308,7 @@ vis2 <- final_df |>
 ```
 
 ```{r}
+#| warning: false
 library(cowplot)
 library(ggridges)
 library(scales)
@@ -350,9 +351,12 @@ plot_grid(title_theme,
 #### Data Vis 2
 
 ```{r}
+#| warning: false
 final_df %>%
   ggplot(aes(x=pop_prop, y = spatial_democracy))+
-  geom_jitter(alpha = 0.3)+
+  geom_jitter(height=0.1,alpha = 0.3)+
+  scale_x_log10()+
+  geom_smooth(method= "lm")+
   labs(
     x = "Population Proportion",
     y = "Spatial Democracy",
