@@ -1,0 +1,504 @@
+---
+title: "Unit 1 Project: Geopolitical System Analysis"
+format: html
+theme: cosmo
+editor: visual
+embed_resources: true
+code-fold: true
+---
+
+## Data Context
+
+### Dataset 1: Original TidyTuesday Geopolitical Structures
+
+```{r}
+#| eval: false
+install.packages("tidytuesdayR")
+```
+
+```{r}
+#| output: false
+library(tidytuesdayR)
+tuesdata <- tidytuesdayR::tt_load('2024-11-05')
+library(tidyverse)
+```
+
+```{r}
+dem_df<- tuesdata$democracy_data
+head(dem_df)
+```
+
+This is a dataset made avaiable through TidyTuesdayR. It contains information from 1955 to 2020 about the geopolitical structure of every country in the world. Example variables include is_democracy, regime_category_index, and is_communist. The collection of this data has largely been ongoing, but I believe was compiled fairly recently. This kind of data is usually easily attainable because most variables are yes/no questions such as, "Was this country a democracy?". Each observational unit is a combination of country and year, so e.g. Albania 1962. This is a very interesting dataset because with the presence of variables such as that give scores to a country's democracy, hold the number of representatives, and even test if they have free and fair elections, you can make some really interesting conclusions about what we consider as some of the most sacred aspects of a society. For example, an idea that we have is testing a relationship with democracy index vs. total representation to test the long held and intuitive belief that more representation per person leads to better democracies. Democracy index is a number from 0 to 10 that intends to quantify how evenly democratic power is spread across different people within a nation. For example, the United States having a senate that gives each state the same number of representatives is something that will take away from its democracy index. Some countries that are labeled as democracies have democracy indices of 0, which is something we tried to understand, but could never fully come to a solid explanation for.
+
+### Dataset 2: Population Adjusted Representation with Geopolitical Structures
+
+```{r}
+#| output: false
+library(httr)
+library(tidyjson)
+library(jsonlite)
+library(tidyverse)
+library(glue)
+library(readxl)
+library(ggrepel)
+library(broom)
+library(scales)
+library(knitr)
+```
+
+```{r}
+base_url <- "https://api.api-ninjas.com/v1/population"
+
+api <- Sys.getenv("API_NINJAS_KEY")
+```
+
+This data has a list of countries along with their population every year.
+
+```{r}
+
+get_pop_data <- function(country) {
+  country_url <- glue("{base_url}?country={URLencode(country)}")
+  countries <- GET(country_url, add_headers("X-Api-Key" = api))
+  tx <- content(countries, "text", encoding = "UTF-8")
+  if (tx==""){
+    return(NA)
+  }
+  countries_data <- fromJSON(tx)
+  if(is.null(countries_data$historical_population)) {
+    return(NULL)
+  }
+  countries_data <- countries_data$historical_population %>%
+    mutate(country = country)
+  return(countries_data)
+}
+
+```
+
+```{r}
+#|eval: false
+pop_data <- map(unique(dem_df$country_name), .f = get_pop_data)
+```
+
+```{r}
+#| eval: false
+saveRDS(pop_data,"pop_data.rds")
+```
+
+```{r}
+pop_data <- read_rds("pop_data.rds")
+```
+
+```{r}
+clean_df <- pop_data %>%
+  keep(~ length(.x)>0) %>%
+  map(~.x %>% select(country, year,population)) %>%
+  bind_rows()
+```
+
+```{r}
+dem2_df <- dem_df %>%
+  filter(year>=1955 & year%%5==0)%>%
+  rename(country = "country_name")
+```
+
+```{r}
+clean2_df <- clean_df %>%
+  filter(year%%5==0) %>%
+  arrange(country, year)
+```
+
+```{r}
+final_df <- left_join(dem2_df, clean2_df, by = c("country", "year"))
+```
+
+```{r}
+final_df <- final_df %>%
+  filter(is_democracy==TRUE)%>%
+  mutate(pop_prop = population/rowSums(cbind(upper_house_members,lower_house_members, third_house_members), na.rm=TRUE))
+
+head(final_df[c("country", "year", "population","pop_prop")])
+```
+
+This is a combined dataset, comprised of the first dataset mentioned and a dataset that contains the historical population of every country. This historical population dataset was available through API Ninjas, and was accessed using the "httr" package. This data was collected every five years since 1955, and is widely accessible through public historical population records. This data was of interest to us because making conclusions about the efficacy of representation is not really useful without some adjusting for population. For example, a country like china may have a lot of representatives but this could be disanalogous with their democracy quality because of the fact that China is the most populated country in the world.
+
+### Dataset 3: Happiness Development Index per Country
+
+```{r}
+happiness <- read_csv("whr_data.csv")
+# I'm not sure why there are empty columns beyond those we are using, the file very clearly only had 13 columns. I don't think this should be an issue, but we're not gonna be using that whole dataset anyway.
+```
+
+```{r}
+happiness_clean <- happiness %>%
+  select(
+    country_name = `Country name`,
+    year = Year,
+    well_being = `Life evaluation (3-year average)`)
+
+#find the years that both this data set and the dem_df covers, and then we'll filter the sets to match those years
+
+range(happiness_clean$year, na.rm = TRUE) # since 2011
+range(dem_df$year, na.rm = TRUE) # 1950 to 2020
+
+dem_overlap <- dem_df %>%
+  filter(year >= 2011)
+happiness_overlap <- happiness_clean %>%
+  filter(year <= 2020)
+
+# now we merge them into one data frame
+#hdiXdem_df <- dem_overlap %>%
+  #left_join(happiness_overlap, by = c("country_name", "year"))
+
+
+# this will weed out the countries that we weren't able to directly match by name
+# hdiXdem_df %>%
+# filter(is.na(well_being)) %>%
+#  distinct(country_name) %>%
+#  arrange(country_name)
+# so that gave 208 countries which surprised me because the names looked the same to me. this makes me believe i messed up on the joining of the dataframes.
+# i'm gonna try the join again, only based off name, not year as well
+
+# hdiXdem_df <- dem_overlap %>%
+ # left_join(happiness_overlap, by = "country_name")
+
+# okay that isn't what we want either, that gives us a many to many dataframe, which is bad, so what I'll do is take the average of the happiness index and democracy index across the years and compare those. For reference, we don't want the many to many dataframe because it has 13010 rows.
+
+# average of both data frames
+avg_dem <- dem_overlap %>%
+  group_by(country_name) %>%
+  summarize(avg_democracy = mean(spatial_democracy, na.rm = TRUE))
+
+avg_happiness <- happiness_overlap %>%
+  group_by(country_name) %>%
+  summarize(avg_well_being = mean(well_being, na.rm = TRUE))
+
+# new dataframe
+
+hdiXdem_df <- avg_dem %>%
+  left_join(avg_happiness, by = "country_name")
+
+# now check again for unmatched countries
+hdiXdem_df %>%
+  filter(is.na(avg_well_being)) %>%
+  distinct(country_name) %>%
+  arrange(country_name)
+#so that gives us 60 countries that are not in our happiness set that are in the democracy set. What we'll do now is use anti_join to see what countries are in the democracy set that are not in the happiness set, and vice versa.
+
+dem_not_happy <- anti_join(avg_dem, avg_happiness, by = "country_name")
+happy_not_dem <- anti_join(avg_happiness, avg_dem, by = "country_name")
+
+nrow(dem_not_happy)
+nrow(happy_not_dem)
+
+head(dem_not_happy, 20)
+happy_not_dem
+
+# after looking through it, it seems that the countries that were in dem_not_happy were a lot of small, island based nation states that don't necessarily need to be included for this to be a fair comparison. The countries in happy_not_dem were all countries with names that may be different between the two sets. these are the countries we will recode. Using my own imperfect analysis, I have chosen the countries I will use from this list of unmatched country names, and I will use this to find the names for those countries in the democracy df
+
+avg_dem %>% filter(str_detect(country_name, "Korea|Mold|Congo|Trinidad|Hong|Palest|Taiwan|Turkey|Czech|Gambia|Slov"))
+
+# now that we know the names of all the countries that we want in both data sets, I will fix the happiness dataset to match the names from the democracy set, and then we will use an inner join to only get the countries that we want.
+
+country_fix_happiness <- c(
+  "Congo" = "Congo, Republic of",
+  "Czechia" = "Czech Republic",
+  "Côte d’Ivoire" = "Ivory Coast",
+  "DR Congo" = "Congo, Dem. Rep.",
+  "Gambia" = "Gambia, The",
+  "Hong Kong SAR of China" = "Hong Kong",
+  "Lao PDR" = "Laos",
+  "Republic of Korea" = "Korea, Republic of",
+  "Republic of Moldova" = "Moldova",
+  "Russian Federation" = "Russia",
+  "Slovakia" = "Slovak Republic",
+  "State of Palestine" = "Palestine",
+  "Taiwan Province of China" = "Taiwan",
+  "Trinidad and Tobago" = "Trinidad &Tobago",
+  "Türkiye" = "Turkey",
+  "Viet Nam" = "Vietnam")
+
+avg_happiness_fixed <- happiness_overlap %>%
+  mutate(country_name = recode(country_name, !!!country_fix_happiness)) %>%
+  group_by(country_name) %>%
+  summarize(avg_well_being = mean(well_being, na.rm = TRUE), .groups = "drop")
+
+hdiXdem_df <- avg_dem %>%
+  inner_join(avg_happiness_fixed, by = "country_name")
+
+head(hdiXdem_df)
+```
+
+This final dataset was read in through a csv file accessed through the World Bank website. It contains the Human Development Indexes of every country. HDI is a rough measurement of the quality of life in countries, broken down into three main measurements; years of education, life expectancy, and gross national income. This was of great use because we wanted to see the connection between the spatial democracy index and happiness index of a country. We wanted to do this because this could help us with a greater connection between greater representation and the happiness/well-being of a country.
+
+## Research Questions
+
+Research Question 1: Is there a significant relationship between spatial democracy index and population adjusted representation (people per representative)?
+
+Research Question 2: Is there a significant relationship between spatial democracy index and happiness development index?
+
+## Data Summaries & Visualizations
+
+### Research Question 1
+
+#### Summary Table 1
+
+```{r}
+democracy_data <- tuesdata$democracy_data
+countries <- unique(democracy_data$country_name)
+total_reps <- numeric(length(countries))
+
+for (i in seq_along(countries)) {
+  this_country <- countries[i]
+  
+  total_reps[i] <- sum(
+    democracy_data$lower_house_members[democracy_data$country_name == this_country],
+    na.rm = TRUE)}
+
+country_rep_summary <- data.frame(
+  country_name = countries,
+  total_lower_house_members = total_reps)
+
+country_rep_summary <- country_rep_summary[order(-country_rep_summary$total_lower_house_members), ]
+
+
+knitr::kable(
+  head(country_rep_summary, 20),
+  col.names = c("Country", "Total Lower House Members"),
+  caption = "Total lower house members by country")
+```
+
+#### Summary Table 2
+
+```{r}
+dem_index<-read.csv("https://raw.githubusercontent.com/egregi0us/political-system-analysis/refs/heads/main/democracy-index-eiu.csv")
+
+dem_index2<-dem_index %>%
+  rename(country = "Entity")%>%
+  rename(year="Year")%>%
+  filter(year>2006 & year%%5==0)
+```
+
+```{r}
+finalest_df <- final_df %>%
+  filter(!pop_prop == Inf)
+```
+
+```{r}
+finalestest_df <- left_join(finalest_df, dem_index2, by = c("country","year"))
+```
+
+```{r}
+finalestest_df<- finalestest_df %>%
+  filter(year>2005)%>%
+  filter(!is.na(Democracy.Index))
+
+head(finalestest_df)
+```
+
+#### Data Vis 1
+
+```{r}
+library(countrycode)
+vis2 <- final_df |>
+  select(country, spatial_democracy, pop_prop) |>
+  mutate(region = countrycode(country,
+                              origin = "country.name",
+                              destination = "continent")) |>
+  filter(!pop_prop==Inf)
+```
+
+```{r}
+library(cowplot)
+library(ggridges)
+library(scales)
+title_theme <- ggdraw() +
+  draw_label("Spatial Democracy Versus Person per Representative by Region",
+    fontfamily = "Courier",
+    fontface = "bold",
+    size = 9,
+    hjust = 0.42
+  )
+
+spa_dem <- ggplot(vis2, aes(x = spatial_democracy,
+                            y = reorder(region, spatial_democracy),
+                            fill = region)) +
+  geom_density_ridges(alpha = 0.7, color = "black", scale = 1) + 
+  scale_x_continuous(limits = c(0, 1)) +
+  labs(x = "Spatial Democracy Index",
+       y = " ") +
+  scale_fill_brewer(palette = "Dark2") +
+  guides(fill = "none")
+
+pop_dem <- ggplot(vis2, aes(x = pop_prop,
+                            y = reorder(region, pop_prop),
+                            fill = region)) +
+  geom_density_ridges(alpha = 0.7, color = "black", scale = 1) +
+  scale_x_continuous(limits = c(0, 50000), labels = label_number(scale_cut = cut_short_scale())) +
+  labs(x = "Person per Rep",
+       y = " ") +
+  scale_fill_brewer(palette = "Dark2") +
+  guides(fill = "none")
+
+gridofplots <- plot_grid(spa_dem, pop_dem, nrow = 1)
+
+plot_grid(title_theme,
+  gridofplots,
+  ncol = 1, rel_heights = c(0.2, 1.5, 0.1)
+)
+```
+
+#### Data Vis 2
+
+```{r}
+final_df %>%
+  ggplot(aes(x=pop_prop, y = spatial_democracy))+
+  geom_jitter(alpha = 0.3)+
+  labs(
+    x = "Population Proportion",
+    y = "Spatial Democracy",
+    title = "Jitter Plot, Population Proportion v. Spatial Democracy"
+  )
+```
+
+### Research Question 2
+
+#### Summary Table 1
+
+```{r}
+final_df <- final_df %>%
+  filter(is_democracy==TRUE)%>%
+  mutate(pop_prop = population/rowSums(cbind(upper_house_members,lower_house_members, third_house_members), na.rm=TRUE))
+
+head(final_df[c("country", "year", "population","pop_prop")])
+```
+
+#### Summary Table 2
+
+```{r}
+avg_dem <- function(country) {
+  dem_df %>%
+    filter(country_name == country) %>%
+    summarize(avg = mean(spatial_democracy, na.rm = TRUE)) %>%
+    pull(avg)
+}
+
+avg_df <- dem_df %>%
+  distinct(country_name) %>%
+  mutate(Average_Democracy = map_dbl(country_name, avg_dem))
+
+head(avg_df)
+```
+
+#### Data Vis 1
+
+```{r}
+# Identifying which countries to label:
+top_wb  <- hdiXdem_df %>% slice_max(avg_well_being, n = 3, with_ties = FALSE)
+low_wb  <- hdiXdem_df %>% slice_min(avg_well_being, n = 3, with_ties = FALSE)
+top_dem <- hdiXdem_df %>% slice_max(avg_democracy, n = 2, with_ties = FALSE)
+low_dem <- hdiXdem_df %>% slice_min(avg_democracy, n = 2, with_ties = FALSE)
+
+label_countries <- bind_rows(top_wb, low_wb, top_dem, low_dem) %>%
+  distinct(country_name, .keep_all = TRUE)
+```
+
+```{r}
+scatter1 <- ggplot(
+  hdiXdem_df,
+  aes(x = avg_democracy, y = avg_well_being)
+) +
+  geom_point(size = 2.8, alpha = 0.85, color = "steelblue") +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 1, color = "orange") +
+  geom_text_repel(
+    data = label_countries,
+    aes(label = country_name),
+    size = 3,
+    max.overlaps = 20
+  ) +
+  scale_x_continuous(labels = scales::number_format(accuracy = 0.1)) +
+  scale_y_continuous(labels = scales::number_format(accuracy = 0.1)) +
+  labs(
+    title = "Democracy and Well-Being Are Positively Associated",
+    subtitle = "Country averages from 2011 to 2020",
+    x = "Average Spatial Democracy Score",
+    y = "Average Well-Being Score"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold")
+  )
+
+```
+
+```{r}
+#| fig-alt: Scatter plot of average spatial democracy scores versus average well-being for countries between 2011 and 2020. Each point represents a country. The points form an upward pattern, indicating that countries with higher democracy scores tend to have higher average well-being. A few countries at the high end are Finland, Switzerland, and Australia, and a few countries at the low end are Burundi, Central African Republic, and South Sudan.
+scatter1
+```
+
+#### Data Vis 2
+
+```{r}
+#| fig-cap: "Distribution of well-being across different levels of democracy."
+
+hdiXdem_df %>%
+  mutate(
+    democracy_group = case_when(
+      avg_democracy < 0.33 ~ "Low",
+      avg_democracy < 0.66 ~ "Medium",
+      TRUE ~ "High"),
+    democracy_group = factor(democracy_group, levels = c("Low", "Medium", "High"))
+  ) %>%
+  ggplot(aes(x = democracy_group, y = avg_well_being, fill = democracy_group)) +
+  geom_boxplot(alpha = 0.7) +
+  labs(
+    title = "Well-Being Increases with Democracy Level",
+    x = "Democracy Level",
+    y = "Average Well-Being"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "none"
+  )
+```
+
+## Data Model
+
+```{r}
+final_df <- final_df %>%
+  filter(!pop_prop==Inf)
+```
+
+```{r}
+#| tbl-cap: "Linear model predicting average well-being from average spatial democracy."
+
+rq2_model <- lm(avg_well_being ~ avg_democracy, data = hdiXdem_df)
+
+tidy(rq2_model) %>%
+  mutate(
+    estimate = round(estimate, 3),
+    std.error = round(std.error, 3),
+    statistic = round(statistic, 3),
+    p.value = pvalue(p.value)
+  ) %>%
+  rename(
+    Term = term,
+    Estimate = estimate,
+    `Standard Error` = std.error,
+    `t-value` = statistic,
+    `p-value` = p.value
+  ) %>%
+  knitr::kable(
+    caption = "Linear regression model predicting average well-being from average spatial democracy."
+  )
+```
+
+The linear regression results indicate a strong, statistically significant positive relationship between average spatial democracy and average well-being. The coefficient for average democracy is 1.557, meaning that for every one-unit increase in the democracy score (on a 0–1 scale), the model predicts an increase of approximately 1.56 points in a country’s average well-being score.
+
+The p-value for this coefficient is \< 0.001, providing strong evidence that this relationship is statistically significant at the 0.05 level. This suggests that the observed positive association is very unlikely to be due to random chance.
+
+The intercept of 4.547 represents the predicted well-being score when the democracy index is zero. This value is useful in practice, as some countries we are investigating have democracy indices of zero, so it serves as a baseline for the model.
+
+Overall, these results support the conclusion that countries with higher levels of democracy tend to exhibit higher levels of well-being, reinforcing the idea that democratic structures may be associated with improved quality of life.
+
+However, this model does not imply causation, and other factors such as economic development or regional differences may also influence well-being.
