@@ -160,7 +160,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggrepel)</span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(broom)</span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(scales)</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div class="cell">
@@ -686,9 +687,7 @@ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 </table>
 </div>
 </div>
-</section>
-<section id="summary-table-2" class="level4">
-<h4 class="anchored" data-anchor-id="summary-table-2">Summary Table 2</h4>
+<p>This table highlights countries with the largest total number of lower house representatives. Larger and more populous countries tend to dominate this list, reflecting the scale of their political systems. #### Summary Table 2</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -718,32 +717,141 @@ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>finalestest_df<span class="ot">&lt;-</span> finalestest_df <span class="sc">%&gt;%</span></span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year<span class="sc">&gt;</span><span class="dv">2005</span>)<span class="sc">%&gt;%</span></span>
-<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Democracy.Index))</span>
-<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(finalestest_df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Democracy.Index))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 48
-  country   country_code  year regime_category_index regime_category is_monarchy
-  &lt;chr&gt;     &lt;chr&gt;        &lt;dbl&gt;                 &lt;dbl&gt; &lt;chr&gt;           &lt;lgl&gt;      
-1 Albania   ALB           2010                     0 Parliamentary … FALSE      
-2 Albania   ALB           2015                     0 Parliamentary … FALSE      
-3 Albania   ALB           2020                     0 Parliamentary … FALSE      
-4 Argentina ARG           2010                     2 Presidential d… FALSE      
-5 Argentina ARG           2015                     2 Presidential d… FALSE      
-6 Argentina ARG           2020                     2 Presidential d… FALSE      
-# ℹ 42 more variables: is_commonwealth &lt;lgl&gt;, monarch_name &lt;chr&gt;,
-#   monarch_accession_year &lt;dbl&gt;, monarch_birthyear &lt;dbl&gt;,
-#   is_female_monarch &lt;lgl&gt;, is_democracy &lt;lgl&gt;, is_presidential &lt;lgl&gt;,
-#   president_name &lt;chr&gt;, president_accesion_year &lt;dbl&gt;,
-#   president_birthyear &lt;dbl&gt;, is_interim_phase &lt;lgl&gt;,
-#   is_female_president &lt;lgl&gt;, is_colony &lt;lgl&gt;, colony_of &lt;chr&gt;,
-#   colony_administrated_by &lt;chr&gt;, is_communist &lt;lgl&gt;, …</code></pre>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>finalestest_df <span class="sc">%&gt;%</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(country, year, spatial_democracy, Democracy.Index, population, pop_prop) <span class="sc">%&gt;%</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">spatial_democracy =</span> <span class="fu">round</span>(spatial_democracy, <span class="dv">3</span>),</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Democracy.Index =</span> <span class="fu">round</span>(Democracy.Index, <span class="dv">3</span>),</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">population =</span> scales<span class="sc">::</span><span class="fu">comma</span>(population),</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">pop_prop =</span> scales<span class="sc">::</span><span class="fu">comma</span>(<span class="fu">round</span>(pop_prop, <span class="dv">0</span>))</span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">col.names =</span> <span class="fu">c</span>(</span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Country"</span>,</span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Year"</span>,</span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Spatial Democracy"</span>,</span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Democracy Index"</span>,</span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Population"</span>,</span>
+<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a>      <span class="st">"People per Representative"</span></span>
+<span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">"Democracy, population, and representation summary for selected countries."</span>,</span>
+<span id="cb43-20"><a href="#cb43-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">align =</span> <span class="st">"c"</span></span>
+<span id="cb43-21"><a href="#cb43-21" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Democracy, population, and representation summary for selected countries.</caption>
+<colgroup>
+<col style="width: 11%">
+<col style="width: 6%">
+<col style="width: 20%">
+<col style="width: 18%">
+<col style="width: 13%">
+<col style="width: 29%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Country</th>
+<th style="text-align: center;">Year</th>
+<th style="text-align: center;">Spatial Democracy</th>
+<th style="text-align: center;">Democracy Index</th>
+<th style="text-align: center;">Population</th>
+<th style="text-align: center;">People per Representative</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Albania</td>
+<td style="text-align: center;">2010</td>
+<td style="text-align: center;">0.80</td>
+<td style="text-align: center;">5.86</td>
+<td style="text-align: center;">2,928,722</td>
+<td style="text-align: center;">20,919</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Albania</td>
+<td style="text-align: center;">2015</td>
+<td style="text-align: center;">0.80</td>
+<td style="text-align: center;">5.91</td>
+<td style="text-align: center;">2,898,632</td>
+<td style="text-align: center;">20,705</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Albania</td>
+<td style="text-align: center;">2020</td>
+<td style="text-align: center;">0.80</td>
+<td style="text-align: center;">6.08</td>
+<td style="text-align: center;">2,871,954</td>
+<td style="text-align: center;">20,514</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Argentina</td>
+<td style="text-align: center;">2010</td>
+<td style="text-align: center;">1.00</td>
+<td style="text-align: center;">6.84</td>
+<td style="text-align: center;">41,288,694</td>
+<td style="text-align: center;">125,498</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Argentina</td>
+<td style="text-align: center;">2015</td>
+<td style="text-align: center;">1.00</td>
+<td style="text-align: center;">7.02</td>
+<td style="text-align: center;">43,477,012</td>
+<td style="text-align: center;">132,149</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Argentina</td>
+<td style="text-align: center;">2020</td>
+<td style="text-align: center;">0.80</td>
+<td style="text-align: center;">6.95</td>
+<td style="text-align: center;">45,191,965</td>
+<td style="text-align: center;">137,362</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Armenia</td>
+<td style="text-align: center;">2010</td>
+<td style="text-align: center;">0.50</td>
+<td style="text-align: center;">4.09</td>
+<td style="text-align: center;">2,931,078</td>
+<td style="text-align: center;">22,375</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Armenia</td>
+<td style="text-align: center;">2015</td>
+<td style="text-align: center;">0.50</td>
+<td style="text-align: center;">4.00</td>
+<td style="text-align: center;">2,921,177</td>
+<td style="text-align: center;">22,299</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Armenia</td>
+<td style="text-align: center;">2020</td>
+<td style="text-align: center;">0.25</td>
+<td style="text-align: center;">5.35</td>
+<td style="text-align: center;">2,890,892</td>
+<td style="text-align: center;">22,068</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Australia</td>
+<td style="text-align: center;">2010</td>
+<td style="text-align: center;">1.00</td>
+<td style="text-align: center;">9.22</td>
+<td style="text-align: center;">22,141,581</td>
+<td style="text-align: center;">97,972</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
-</section>
-<section id="data-vis-1" class="level4">
-<h4 class="anchored" data-anchor-id="data-vis-1">Data Vis 1</h4>
+<p>This table shows how population, representation, and democracy scores vary across countries and years. It provides context for understanding how representation per person may relate to democratic outcomes. #### Data Vis 1</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -828,14 +936,12 @@ font family not found in Windows font database</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="report431finalsub_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="report431finalsub_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-</section>
-<section id="data-vis-2" class="level4">
-<h4 class="anchored" data-anchor-id="data-vis-2">Data Vis 2</h4>
+<p>These plots show how both democracy scores and representation levels vary across regions. Clear regional differences suggest that geography may play a role in political structure and representation. #### Data Vis 2</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -855,15 +961,13 @@ font family not found in Windows font database</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="report431finalsub_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="report431finalsub_files/figure-html/unnamed-chunk-25-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
+<p>This scatter shows a wide spread in democracy scores across different levels of population per representative. While there is some visible pattern, the relationship appears noisy and not strictly linear. ### Research Question 2</p>
 </section>
-</section>
-<section id="research-question-2" class="level3">
-<h3 class="anchored" data-anchor-id="research-question-2">Research Question 2</h3>
 <section id="summary-table-1-1" class="level4">
 <h4 class="anchored" data-anchor-id="summary-table-1-1">Summary Table 1</h4>
 <div class="cell">
@@ -871,25 +975,107 @@ font family not found in Windows font database</code></pre>
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>final_df <span class="ot">&lt;-</span> final_df <span class="sc">%&gt;%</span></span>
 <span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(is_democracy<span class="sc">==</span><span class="cn">TRUE</span>)<span class="sc">%&gt;%</span></span>
-<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pop_prop =</span> population<span class="sc">/</span><span class="fu">rowSums</span>(<span class="fu">cbind</span>(upper_house_members,lower_house_members, third_house_members), <span class="at">na.rm=</span><span class="cn">TRUE</span>))</span>
-<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(final_df[<span class="fu">c</span>(<span class="st">"country"</span>, <span class="st">"year"</span>, <span class="st">"population"</span>,<span class="st">"pop_prop"</span>)])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pop_prop =</span> population<span class="sc">/</span><span class="fu">rowSums</span>(<span class="fu">cbind</span>(upper_house_members,lower_house_members, third_house_members), <span class="at">na.rm=</span><span class="cn">TRUE</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 4
-  country  year population pop_prop
-  &lt;chr&gt;   &lt;dbl&gt;      &lt;int&gt;    &lt;dbl&gt;
-1 Albania  1995    3258567   23275.
-2 Albania  2000    3166148   20427.
-3 Albania  2005    3076159   21973.
-4 Albania  2010    2928722   20919.
-5 Albania  2015    2898632   20705.
-6 Albania  2020    2871954   20514.</code></pre>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>final_df <span class="sc">%&gt;%</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(country, year, population, pop_prop) <span class="sc">%&gt;%</span></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">population =</span> scales<span class="sc">::</span><span class="fu">comma</span>(population),</span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">pop_prop =</span> scales<span class="sc">::</span><span class="fu">comma</span>(<span class="fu">round</span>(pop_prop, <span class="dv">0</span>))</span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">col.names =</span> <span class="fu">c</span>(</span>
+<span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Country"</span>,</span>
+<span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Year"</span>,</span>
+<span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Population"</span>,</span>
+<span id="cb57-13"><a href="#cb57-13" aria-hidden="true" tabindex="-1"></a>      <span class="st">"People per Representative"</span></span>
+<span id="cb57-14"><a href="#cb57-14" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb57-15"><a href="#cb57-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">"Population-adjusted representation for selected democratic countries."</span>,</span>
+<span id="cb57-16"><a href="#cb57-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">align =</span> <span class="st">"c"</span></span>
+<span id="cb57-17"><a href="#cb57-17" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Population-adjusted representation for selected democratic countries.</caption>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Country</th>
+<th style="text-align: center;">Year</th>
+<th style="text-align: center;">Population</th>
+<th style="text-align: center;">People per Representative</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Albania</td>
+<td style="text-align: center;">1995</td>
+<td style="text-align: center;">3,258,567</td>
+<td style="text-align: center;">23,275</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Albania</td>
+<td style="text-align: center;">2000</td>
+<td style="text-align: center;">3,166,148</td>
+<td style="text-align: center;">20,427</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Albania</td>
+<td style="text-align: center;">2005</td>
+<td style="text-align: center;">3,076,159</td>
+<td style="text-align: center;">21,973</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Albania</td>
+<td style="text-align: center;">2010</td>
+<td style="text-align: center;">2,928,722</td>
+<td style="text-align: center;">20,919</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Albania</td>
+<td style="text-align: center;">2015</td>
+<td style="text-align: center;">2,898,632</td>
+<td style="text-align: center;">20,705</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Albania</td>
+<td style="text-align: center;">2020</td>
+<td style="text-align: center;">2,871,954</td>
+<td style="text-align: center;">20,514</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Anguilla</td>
+<td style="text-align: center;">1955</td>
+<td style="text-align: center;">5,741</td>
+<td style="text-align: center;">Inf</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Anguilla</td>
+<td style="text-align: center;">1960</td>
+<td style="text-align: center;">5,782</td>
+<td style="text-align: center;">Inf</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Anguilla</td>
+<td style="text-align: center;">1965</td>
+<td style="text-align: center;">6,018</td>
+<td style="text-align: center;">Inf</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Anguilla</td>
+<td style="text-align: center;">1980</td>
+<td style="text-align: center;">6,588</td>
+<td style="text-align: center;">599</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
-</section>
-<section id="summary-table-2-1" class="level4">
-<h4 class="anchored" data-anchor-id="summary-table-2-1">Summary Table 2</h4>
+<p>This table illustrates how population and representation levels change over time for different countries. It emphasizes the variation in how many people each representative serves. #### Summary Table 2</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -902,25 +1088,81 @@ font family not found in Windows font database</code></pre>
 <span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>avg_df <span class="ot">&lt;-</span> dem_df <span class="sc">%&gt;%</span></span>
 <span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(country_name) <span class="sc">%&gt;%</span></span>
-<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Average_Democracy =</span> <span class="fu">map_dbl</span>(country_name, avg_dem))</span>
-<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(avg_df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Average_Democracy =</span> <span class="fu">map_dbl</span>(country_name, avg_dem))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 2
-  country_name        Average_Democracy
-  &lt;chr&gt;                           &lt;dbl&gt;
-1 Afghanistan                    0.130 
-2 Albania                        0.521 
-3 Algeria                        0.143 
-4 Angola                         0.0951
-5 Anguilla                       0.972 
-6 Antigua and Barbuda            0.965 </code></pre>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>avg_df <span class="sc">%&gt;%</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Average_Democracy =</span> <span class="fu">round</span>(Average_Democracy, <span class="dv">3</span>)</span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">col.names =</span> <span class="fu">c</span>(</span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Country"</span>,</span>
+<span id="cb59-9"><a href="#cb59-9" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Average Democracy Score"</span></span>
+<span id="cb59-10"><a href="#cb59-10" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb59-11"><a href="#cb59-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">"Average spatial democracy score by country."</span>,</span>
+<span id="cb59-12"><a href="#cb59-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">align =</span> <span class="st">"c"</span></span>
+<span id="cb59-13"><a href="#cb59-13" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Average spatial democracy score by country.</caption>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Country</th>
+<th style="text-align: center;">Average Democracy Score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Afghanistan</td>
+<td style="text-align: center;">0.130</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Albania</td>
+<td style="text-align: center;">0.521</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Algeria</td>
+<td style="text-align: center;">0.143</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Angola</td>
+<td style="text-align: center;">0.095</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Anguilla</td>
+<td style="text-align: center;">0.972</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Antigua and Barbuda</td>
+<td style="text-align: center;">0.965</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Argentina</td>
+<td style="text-align: center;">0.656</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Armenia</td>
+<td style="text-align: center;">0.246</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Aruba</td>
+<td style="text-align: center;">0.892</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Australia</td>
+<td style="text-align: center;">0.704</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
-</section>
-<section id="data-vis-1-1" class="level4">
-<h4 class="anchored" data-anchor-id="data-vis-1-1">Data Vis 1</h4>
+<p>This table summarizes the average democracy score for each country. It provides a simplified measure of long-term democratic performance across nations. #### Data Vis 1</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -974,14 +1216,12 @@ font family not found in Windows font database</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="report431finalsub_files/figure-html/unnamed-chunk-29-1.png" class="img-fluid figure-img" alt="Scatter plot of average spatial democracy scores versus average well-being for countries between 2011 and 2020. Each point represents a country. The points form an upward pattern, indicating that countries with higher democracy scores tend to have higher average well-being. A few countries at the high end are Finland, Switzerland, and Australia, and a few countries at the low end are Burundi, Central African Republic, and South Sudan." width="672"></p>
+<p><img src="report431finalsub_files/figure-html/unnamed-chunk-32-1.png" class="img-fluid figure-img" alt="Scatter plot of average spatial democracy scores versus average well-being for countries between 2011 and 2020. Each point represents a country. The points form an upward pattern, indicating that countries with higher democracy scores tend to have higher average well-being. A few countries at the high end are Finland, Switzerland, and Australia, and a few countries at the low end are Burundi, Central African Republic, and South Sudan." width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-</section>
-<section id="data-vis-2-1" class="level4">
-<h4 class="anchored" data-anchor-id="data-vis-2-1">Data Vis 2</h4>
+<p>This plot shows a clear positive relationship between democracy and well-being. Countries with higher democracy scores tend to have higher average well-being. #### Data Vis 2</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1009,17 +1249,13 @@ font family not found in Windows font database</code></pre>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="report431finalsub_files/figure-html/unnamed-chunk-30-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="report431finalsub_files/figure-html/unnamed-chunk-33-1.png" class="img-fluid figure-img" width="672"></p>
 <figcaption>Distribution of well-being across different levels of democracy.</figcaption>
 </figure>
 </div>
 </div>
 </div>
-</section>
-</section>
-</section>
-<section id="data-model" class="level2">
-<h2 class="anchored" data-anchor-id="data-model">Data Model</h2>
+<p>This visualization shows that countries with higher levels of democracy generally have higher and more consistent well-being scores. The upward shift in medians reinforces the positive association. ## Data Model</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1086,6 +1322,8 @@ font family not found in Windows font database</code></pre>
 <p>The intercept of 4.547 represents the predicted well-being score when the democracy index is zero. This value is useful in practice, as some countries we are investigating have democracy indices of zero, so it serves as a baseline for the model.</p>
 <p>Overall, these results support the conclusion that countries with higher levels of democracy tend to exhibit higher levels of well-being, reinforcing the idea that democratic structures may be associated with improved quality of life.</p>
 <p>However, this model does not imply causation, and other factors such as economic development or regional differences may also influence well-being.</p>
+</section>
+</section>
 </section>
 
 </main>

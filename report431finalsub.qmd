@@ -123,7 +123,7 @@ This is a combined dataset, comprised of the first dataset mentioned and a datas
 ### Dataset 3: Happiness Development Index per Country
 
 ```{r}
-happiness <- read_csv("datasets/whr_data.csv")
+happiness <- read_csv("whr_data.csv")
 # I'm not sure why there are empty columns beyond those we are using, the file very clearly only had 13 columns. I don't think this should be an issue, but we're not gonna be using that whole dataset anyway.
 ```
 
