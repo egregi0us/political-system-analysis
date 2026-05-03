@@ -44,6 +44,7 @@ library(ggrepel)
 library(broom)
 library(scales)
 library(knitr)
+library(kableExtra)
 ```
 
 ```{r}
@@ -51,9 +52,7 @@ base_url <- "https://api.api-ninjas.com/v1/population"
 
 api <- Sys.getenv("API_NINJAS_KEY")
 ```
-
 This data has a list of countries along with their population every year.
-
 ```{r}
 
 get_pop_data <- function(country) {
@@ -124,7 +123,7 @@ This is a combined dataset, comprised of the first dataset mentioned and a datas
 ### Dataset 3: Happiness Development Index per Country
 
 ```{r}
-happiness <- read_csv("whr_data.csv")
+happiness <- read_csv("datasets/whr_data.csv")
 # I'm not sure why there are empty columns beyond those we are using, the file very clearly only had 13 columns. I don't think this should be an issue, but we're not gonna be using that whole dataset anyway.
 ```
 
@@ -266,7 +265,7 @@ knitr::kable(
   col.names = c("Country", "Total Lower House Members"),
   caption = "Total lower house members by country")
 ```
-
+This table highlights countries with the largest total number of lower house representatives. Larger and more populous countries tend to dominate this list, reflecting the scale of their political systems.
 #### Summary Table 2
 
 ```{r}
@@ -292,9 +291,32 @@ finalestest_df<- finalestest_df %>%
   filter(year>2005)%>%
   filter(!is.na(Democracy.Index))
 
-head(finalestest_df)
 ```
 
+```{r}
+finalestest_df %>%
+  select(country, year, spatial_democracy, Democracy.Index, population, pop_prop) %>%
+  head(10) %>%
+  mutate(
+    spatial_democracy = round(spatial_democracy, 3),
+    Democracy.Index = round(Democracy.Index, 3),
+    population = scales::comma(population),
+    pop_prop = scales::comma(round(pop_prop, 0))
+  ) %>%
+  knitr::kable(
+    col.names = c(
+      "Country",
+      "Year",
+      "Spatial Democracy",
+      "Democracy Index",
+      "Population",
+      "People per Representative"
+    ),
+    caption = "Democracy, population, and representation summary for selected countries.",
+    align = "c"
+  )
+```
+This table shows how population, representation, and democracy scores vary across countries and years. It provides context for understanding how representation per person may relate to democratic outcomes.
 #### Data Vis 1
 
 ```{r}
@@ -346,7 +368,7 @@ plot_grid(title_theme,
   ncol = 1, rel_heights = c(0.2, 1.5, 0.1)
 )
 ```
-
+These plots show how both democracy scores and representation levels vary across regions. Clear regional differences suggest that geography may play a role in political structure and representation.
 #### Data Vis 2
 
 ```{r}
@@ -359,7 +381,7 @@ final_df %>%
     title = "Jitter Plot, Population Proportion v. Spatial Democracy"
   )
 ```
-
+This scatter shows a wide spread in democracy scores across different levels of population per representative. While there is some visible pattern, the relationship appears noisy and not strictly linear.
 ### Research Question 2
 
 #### Summary Table 1
@@ -369,9 +391,29 @@ final_df <- final_df %>%
   filter(is_democracy==TRUE)%>%
   mutate(pop_prop = population/rowSums(cbind(upper_house_members,lower_house_members, third_house_members), na.rm=TRUE))
 
-head(final_df[c("country", "year", "population","pop_prop")])
+
 ```
 
+```{r}
+final_df %>%
+  select(country, year, population, pop_prop) %>%
+  head(10) %>%
+  mutate(
+    population = scales::comma(population),
+    pop_prop = scales::comma(round(pop_prop, 0))
+  ) %>%
+  knitr::kable(
+    col.names = c(
+      "Country",
+      "Year",
+      "Population",
+      "People per Representative"
+    ),
+    caption = "Population-adjusted representation for selected democratic countries.",
+    align = "c"
+  )
+```
+This table illustrates how population and representation levels change over time for different countries. It emphasizes the variation in how many people each representative serves.
 #### Summary Table 2
 
 ```{r}
@@ -386,9 +428,25 @@ avg_df <- dem_df %>%
   distinct(country_name) %>%
   mutate(Average_Democracy = map_dbl(country_name, avg_dem))
 
-head(avg_df)
+
 ```
 
+```{r}
+avg_df %>%
+  head(10) %>%
+  mutate(
+    Average_Democracy = round(Average_Democracy, 3)
+  ) %>%
+  knitr::kable(
+    col.names = c(
+      "Country",
+      "Average Democracy Score"
+    ),
+    caption = "Average spatial democracy score by country.",
+    align = "c"
+  )
+```
+This table summarizes the average democracy score for each country. It provides a simplified measure of long-term democratic performance across nations.
 #### Data Vis 1
 
 ```{r}
@@ -434,7 +492,7 @@ scatter1 <- ggplot(
 #| fig-alt: Scatter plot of average spatial democracy scores versus average well-being for countries between 2011 and 2020. Each point represents a country. The points form an upward pattern, indicating that countries with higher democracy scores tend to have higher average well-being. A few countries at the high end are Finland, Switzerland, and Australia, and a few countries at the low end are Burundi, Central African Republic, and South Sudan.
 scatter1
 ```
-
+This plot shows a clear positive relationship between democracy and well-being. Countries with higher democracy scores tend to have higher average well-being.
 #### Data Vis 2
 
 ```{r}
@@ -461,13 +519,14 @@ hdiXdem_df %>%
     legend.position = "none"
   )
 ```
-
+This visualization shows that countries with higher levels of democracy generally have higher and more consistent well-being scores. The upward shift in medians reinforces the positive association.
 ## Data Model
 
 ```{r}
 final_df <- final_df %>%
   filter(!pop_prop==Inf)
 ```
+
 
 ```{r}
 #| tbl-cap: "Linear model predicting average well-being from average spatial democracy."
@@ -495,7 +554,7 @@ tidy(rq2_model) %>%
 
 The linear regression results indicate a strong, statistically significant positive relationship between average spatial democracy and average well-being. The coefficient for average democracy is 1.557, meaning that for every one-unit increase in the democracy score (on a 0–1 scale), the model predicts an increase of approximately 1.56 points in a country’s average well-being score.
 
-The p-value for this coefficient is \< 0.001, providing strong evidence that this relationship is statistically significant at the 0.05 level. This suggests that the observed positive association is very unlikely to be due to random chance.
+The p-value for this coefficient is < 0.001, providing strong evidence that this relationship is statistically significant at the 0.05 level. This suggests that the observed positive association is very unlikely to be due to random chance.
 
 The intercept of 4.547 represents the predicted well-being score when the democracy index is zero. This value is useful in practice, as some countries we are investigating have democracy indices of zero, so it serves as a baseline for the model.
 
