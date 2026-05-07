@@ -366,7 +366,7 @@ plot_grid(title_theme,
 )
 ```
 
-These plots show how both democracy scores and representation levels vary across regions. Clear regional differences suggest that geography may play a role in political structure and representation.
+These plots show how both democracy scores and representation levels vary across regions. This is useful to us because we can see how spatial democracy and representation are distributed by continent. This can help us spot out meaningful differences not just between countries in the data summaries before, but also by continent. Continental patterns can lead to more questions such as what factors that are present continent wide can lead to such disparities? A famous example of these sorts of questions are present in "Guns, Germs, and Steel" by Jared Diamond, where he attributes the disparities between Africa and parts of Asia to the presence of certain crops and livestock, as well as geographical differences.
 
 ### Vis
 
@@ -381,7 +381,8 @@ final_df %>%
     title = "Jitter Plot, Population Proportion v. Spatial Democracy"
   )
 ```
-This scatter shows a wide spread in democracy scores across different levels of population per representative. While there is some visible pattern, the relationship appears noisy and not strictly linear.
+
+This scatterplot shows a wide spread in democracy scores across different levels of population per representative. While there is some visible pattern, the relationship appears noisy and not strictly linear. This is largely due to a shortcoming in our data, being that spatial democracy is a categorical-like quantitative variable, meaning that even though its measured in numbers, its largely easy numbers to work with between 0 and 1, so 0.5,0.6,0.25 for example. This leads to clustering as you can see in the scatterplot. However, past this we can still see some negative trend in the data, indicating a potential negative relationship between spatial democracy and population adjusted representation. Note that the way that we measured representation leads to a higher number meaning lower representation since our population adjusting was measured in person per representative.
 
 ## Does the quality of a country's democracy even relate to their overall happiness?
 
@@ -414,7 +415,8 @@ final_df %>%
     align = "c"
   )
 ```
-This table illustrates how population and representation levels change over time for different countries. It emphasizes the variation in how many people each representative serves.
+
+This table illustrates how population and representation levels change over time for different countries. This can highlight changes in historical, geopolitical trends, such as the rise of democratic nations over the past seventy years, and the challenges of some countries with overcoming monarchic structures. 
 
 ### Tab
 
@@ -448,7 +450,8 @@ avg_df %>%
     align = "c"
   )
 ```
-This table summarizes the average democracy score for each country. It provides a simplified measure of long-term democratic performance across nations.
+
+This table summarizes the average democracy score for each country. It provides a simplified measure of long-term democratic performance across nations. Looking at each spatial democracy score for 70 total years can be tough to digest, so getting an average look over the recorded history gives us a good preliminary look into the performance of a country. We do recognize however, that average does not provide a comprehensive look into the country's quality of democracy. For example, countries like Japan, South Korea, and former USSR countries had quick turnaround to democratic structures. 
 
 ### Vis 
 
@@ -496,7 +499,8 @@ scatter1 <- ggplot(
 #| warning: false
 scatter1
 ```
-This plot shows a clear positive relationship between democracy and well-being. Countries with higher democracy scores tend to have higher average well-being.
+
+This scatter plot shows a clear positive relationship between democracy and well-being. Countries with higher democracy scores tend to have higher average well-being. This is a very important visualization because we can obtain a preliminary sense of an answer to our question, that yes, a good quality democracy does tend to bolster the happiness and well-being of its constituents. Therefore, if this does prove to be statistically true, then the next important task becomes finding ways to improve the quality of a democracy to foster well-being.
 
 ### Vis
 
@@ -524,7 +528,8 @@ hdiXdem_df %>%
     legend.position = "none"
   )
 ```
-This visualization shows that countries with higher levels of democracy generally have higher and more consistent well-being scores. The upward shift in medians reinforces the positive association.
+
+This visualization shows that countries with higher levels of democracy generally have higher and more consistent well-being scores. The upward shift in medians reinforces the positive association. This is largely just a different angle of the same conclusion that a high quality democracy is associated with a higher average well-being. Again, this gives us further reason to conduct a statistical test to determine whether or not democracy level is truly associated with well being.
 
 ### Model
 
