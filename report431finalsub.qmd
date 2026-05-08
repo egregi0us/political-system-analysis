@@ -227,7 +227,6 @@ Geopolitical structures are very diverse, with everything from parliamentary dem
 
 We first use a dataset made avaiable through TidyTuesdayR. It contains information from 1955 to 2020 about the geopolitical structure of every country in the world. Example variables include democracy status, a regime category index, and communist status. The collection of this data has largely been ongoing, but I believe was compiled fairly recently. This kind of data is usually easily attainable because most variables are yes/no questions such as, "Was this country a democracy?". Each observational unit is a combination of country and year, so e.g. Albania 1962. This is a very interesting dataset because with the presence of variables such as that give scores to a country's democracy, hold the number of representatives, and even test if they have free and fair elections, you can make some really interesting conclusions about what we consider as some of the most sacred aspects of a society. For example, an idea that we have is testing a relationship with spatial democracy index vs. total representation to test the long held and intuitive belief that more representation per person leads to better democracies. To obtain this population data, we used an API to collect historical population data. This data was collected every five years since 1955, and is widely accessible through public historical population records. This data was of interest to us because making conclusions about the efficacy of representation is not really useful without some adjusting for population. For example, a country like china may have a lot of representatives but this could be disanalogous with their democracy quality because of the fact that China is the most populated country in the world.
 
-### Tab
 
 ```{r}
 democracy_data <- tuesdata$democracy_data
@@ -256,7 +255,6 @@ knitr::kable(
 
 This table highlights countries with the largest total number of lower house representatives. Larger and more populous countries tend to dominate this list, reflecting the scale of their political systems. As we prepare to analyze the representation score per country, we need to gather total numbers of representatives across chambers. This can present itself as a challenge because we have encountered the fact that countries have different ways of organizing their representatives. For example, while the United States has a bicameral legislature, there is an additional column in the dataset for a third house, which we had to account for. Overall, this table both helps us get a good idea for the front runners of representation, and at the same time helps us prepare to gather population data to take some averages to get a population adjusted representation measure.
 
-### Tab
 
 ```{r}
 dem_index<-read.csv("https://raw.githubusercontent.com/egregi0us/political-system-analysis/refs/heads/main/democracy-index-eiu.csv")
@@ -309,7 +307,6 @@ finalestest_df %>%
 
 This table shows how population, representation, and democracy scores vary across countries and years. All of these variables are extraordinarily useful for our questions, as it provides context for understanding how representation per person may relate to democratic outcomes. It includes two measures of democracy, both spatial democracy score and democracy index. These were pulled from different sources, and really only differ by the fact that the democracy index seems to be less clustered around certain values between 0 and 1.
 
-### Vis
 
 ```{r}
 library(countrycode)
@@ -368,7 +365,6 @@ plot_grid(title_theme,
 
 These plots show how both democracy scores and representation levels vary across regions. This is useful to us because we can see how spatial democracy and representation are distributed by continent. This can help us spot out meaningful differences not just between countries in the data summaries before, but also by continent. Continental patterns can lead to more questions such as what factors that are present continent wide can lead to such disparities? A famous example of these sorts of questions are present in "Guns, Germs, and Steel" by Jared Diamond, where he attributes the disparities between Africa and parts of Asia to the presence of certain crops and livestock, as well as geographical differences.
 
-### Vis
 
 ```{r}
 #| warning: false
@@ -388,7 +384,6 @@ This scatterplot shows a wide spread in democracy scores across different levels
 
 The data pertaining to this research question was read in through a csv file accessed through the World Bank website. It contains the Human Development Indexes of every country. HDI is a rough measurement of the quality of life in countries, broken down into three main measurements; years of education, life expectancy, and gross national income. This was of great use because we wanted to see the connection between the spatial democracy index and happiness index of a country. We wanted to do this because this could help us with a greater connection between greater representation and the happiness/well-being of a country.
 
-### Tab
 
 ```{r}
 final_df <- final_df %>%
@@ -418,7 +413,6 @@ final_df %>%
 
 This table illustrates how population and representation levels change over time for different countries. This can highlight changes in historical, geopolitical trends, such as the rise of democratic nations over the past seventy years, and the challenges of some countries with overcoming monarchic structures. 
 
-### Tab
 
 ```{r}
 avg_dem <- function(country) {
@@ -453,7 +447,6 @@ avg_df %>%
 
 This table summarizes the average democracy score for each country. It provides a simplified measure of long-term democratic performance across nations. Looking at each spatial democracy score for 70 total years can be tough to digest, so getting an average look over the recorded history gives us a good preliminary look into the performance of a country. We do recognize however, that average does not provide a comprehensive look into the country's quality of democracy. For example, countries like Japan, South Korea, and former USSR countries had quick turnaround to democratic structures. 
 
-### Vis 
 
 ```{r}
 # Identifying which countries to label:
@@ -502,7 +495,6 @@ scatter1
 
 This scatter plot shows a clear positive relationship between democracy and well-being. Countries with higher democracy scores tend to have higher average well-being. This is a very important visualization because we can obtain a preliminary sense of an answer to our question, that yes, a good quality democracy does tend to bolster the happiness and well-being of its constituents. Therefore, if this does prove to be statistically true, then the next important task becomes finding ways to improve the quality of a democracy to foster well-being.
 
-### Vis
 
 ```{r}
 #| fig-cap: "Distribution of well-being across different levels of democracy."
@@ -531,7 +523,6 @@ hdiXdem_df %>%
 
 This visualization shows that countries with higher levels of democracy generally have higher and more consistent well-being scores. The upward shift in medians reinforces the positive association. This is largely just a different angle of the same conclusion that a high quality democracy is associated with a higher average well-being. Again, this gives us further reason to conduct a statistical test to determine whether or not democracy level is truly associated with well being.
 
-### Model
 
 ```{r}
 final_df <- final_df %>%
