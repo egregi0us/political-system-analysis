@@ -341,8 +341,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="does-a-countrys-representation-even-relate-to-their-democracy-quality" class="level2">
 <h2 class="anchored" data-anchor-id="does-a-countrys-representation-even-relate-to-their-democracy-quality">Does a country’s representation even relate to their democracy quality?</h2>
 <p>We first use a dataset made avaiable through TidyTuesdayR. It contains information from 1955 to 2020 about the geopolitical structure of every country in the world. Example variables include democracy status, a regime category index, and communist status. The collection of this data has largely been ongoing, but I believe was compiled fairly recently. This kind of data is usually easily attainable because most variables are yes/no questions such as, “Was this country a democracy?”. Each observational unit is a combination of country and year, so e.g.&nbsp;Albania 1962. This is a very interesting dataset because with the presence of variables such as that give scores to a country’s democracy, hold the number of representatives, and even test if they have free and fair elections, you can make some really interesting conclusions about what we consider as some of the most sacred aspects of a society. For example, an idea that we have is testing a relationship with spatial democracy index vs.&nbsp;total representation to test the long held and intuitive belief that more representation per person leads to better democracies. To obtain this population data, we used an API to collect historical population data. This data was collected every five years since 1955, and is widely accessible through public historical population records. This data was of interest to us because making conclusions about the efficacy of representation is not really useful without some adjusting for population. For example, a country like china may have a lot of representatives but this could be disanalogous with their democracy quality because of the fact that China is the most populated country in the world.</p>
-<section id="tab" class="level3">
-<h3 class="anchored" data-anchor-id="tab">Tab</h3>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -485,9 +483,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>This table highlights countries with the largest total number of lower house representatives. Larger and more populous countries tend to dominate this list, reflecting the scale of their political systems. As we prepare to analyze the representation score per country, we need to gather total numbers of representatives across chambers. This can present itself as a challenge because we have encountered the fact that countries have different ways of organizing their representatives. For example, while the United States has a bicameral legislature, there is an additional column in the dataset for a third house, which we had to account for. Overall, this table both helps us get a good idea for the front runners of representation, and at the same time helps us prepare to gather population data to take some averages to get a population adjusted representation measure.</p>
-</section>
-<section id="tab-1" class="level3">
-<h3 class="anchored" data-anchor-id="tab-1">Tab</h3>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -692,9 +687,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>This table shows how population, representation, and democracy scores vary across countries and years. All of these variables are extraordinarily useful for our questions, as it provides context for understanding how representation per person may relate to democratic outcomes. It includes two measures of democracy, both spatial democracy score and democracy index. These were pulled from different sources, and really only differ by the fact that the democracy index seems to be less clustered around certain values between 0 and 1.</p>
-</section>
-<section id="vis" class="level3">
-<h3 class="anchored" data-anchor-id="vis">Vis</h3>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -762,9 +754,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>These plots show how both democracy scores and representation levels vary across regions. This is useful to us because we can see how spatial democracy and representation are distributed by continent. This can help us spot out meaningful differences not just between countries in the data summaries before, but also by continent. Continental patterns can lead to more questions such as what factors that are present continent wide can lead to such disparities? A famous example of these sorts of questions are present in “Guns, Germs, and Steel” by Jared Diamond, where he attributes the disparities between Africa and parts of Asia to the presence of certain crops and livestock, as well as geographical differences.</p>
-</section>
-<section id="vis-1" class="level3">
-<h3 class="anchored" data-anchor-id="vis-1">Vis</h3>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -787,18 +776,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>This scatterplot shows a wide spread in democracy scores across different levels of population per representative. While there is some visible pattern, the relationship appears noisy and not strictly linear. This is largely due to a shortcoming in our data, being that spatial democracy is a categorical-like quantitative variable, meaning that even though its measured in numbers, its largely easy numbers to work with between 0 and 1, so 0.5,0.6,0.25 for example. This leads to clustering as you can see in the scatterplot. However, past this we can still see some negative trend in the data, indicating a potential negative relationship between spatial democracy and population adjusted representation. Note that the way that we measured representation leads to a higher number meaning lower representation since our population adjusting was measured in person per representative.</p>
 </section>
-</section>
 <section id="does-the-quality-of-a-countrys-democracy-even-relate-to-their-overall-happiness" class="level2">
 <h2 class="anchored" data-anchor-id="does-the-quality-of-a-countrys-democracy-even-relate-to-their-overall-happiness">Does the quality of a country’s democracy even relate to their overall happiness?</h2>
 <p>The data pertaining to this research question was read in through a csv file accessed through the World Bank website. It contains the Human Development Indexes of every country. HDI is a rough measurement of the quality of life in countries, broken down into three main measurements; years of education, life expectancy, and gross national income. This was of great use because we wanted to see the connection between the spatial democracy index and happiness index of a country. We wanted to do this because this could help us with a greater connection between greater representation and the happiness/well-being of a country.</p>
-<section id="tab-2" class="level3">
-<h3 class="anchored" data-anchor-id="tab-2">Tab</h3>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>final_df <span class="ot">&lt;-</span> final_df <span class="sc">%&gt;%</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(is_democracy<span class="sc">==</span><span class="cn">TRUE</span>)<span class="sc">%&gt;%</span></span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pop_prop =</span> population<span class="sc">/</span><span class="fu">rowSums</span>(<span class="fu">cbind</span>(upper_house_members,lower_house_members, third_house_members), <span class="at">na.rm=</span><span class="cn">TRUE</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>pop_prop<span class="sc">==</span><span class="cn">Inf</span>)<span class="sc">%&gt;%</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pop_prop =</span> population<span class="sc">/</span><span class="fu">rowSums</span>(<span class="fu">cbind</span>(upper_house_members,lower_house_members, third_house_members), <span class="at">na.rm=</span><span class="cn">TRUE</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div class="cell">
@@ -835,121 +822,100 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: center;">Anguilla</td>
-<td style="text-align: center;">1955</td>
-<td style="text-align: center;">5,741</td>
-<td style="text-align: center;">Inf</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">Anguilla</td>
-<td style="text-align: center;">1960</td>
-<td style="text-align: center;">5,782</td>
-<td style="text-align: center;">Inf</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">Anguilla</td>
-<td style="text-align: center;">1965</td>
-<td style="text-align: center;">6,018</td>
-<td style="text-align: center;">Inf</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">Aruba</td>
-<td style="text-align: center;">1955</td>
-<td style="text-align: center;">48,768</td>
-<td style="text-align: center;">Inf</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">Aruba</td>
-<td style="text-align: center;">1960</td>
-<td style="text-align: center;">54,922</td>
-<td style="text-align: center;">Inf</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">Aruba</td>
-<td style="text-align: center;">1965</td>
-<td style="text-align: center;">58,190</td>
-<td style="text-align: center;">Inf</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">Bahamas</td>
+<td style="text-align: center;">India</td>
 <td style="text-align: center;">2020</td>
-<td style="text-align: center;">395,863</td>
-<td style="text-align: center;">Inf</td>
+<td style="text-align: center;">1,402,617,695</td>
+<td style="text-align: center;">1,779,972</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">Cayman Islands</td>
-<td style="text-align: center;">1955</td>
-<td style="text-align: center;">7,694</td>
-<td style="text-align: center;">Inf</td>
+<td style="text-align: center;">India</td>
+<td style="text-align: center;">2015</td>
+<td style="text-align: center;">1,328,024,498</td>
+<td style="text-align: center;">1,685,310</td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">Cook Islands</td>
-<td style="text-align: center;">1960</td>
-<td style="text-align: center;">17,662</td>
-<td style="text-align: center;">Inf</td>
+<td style="text-align: center;">India</td>
+<td style="text-align: center;">2010</td>
+<td style="text-align: center;">1,243,481,564</td>
+<td style="text-align: center;">1,578,022</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">Cook Islands</td>
-<td style="text-align: center;">1965</td>
-<td style="text-align: center;">18,779</td>
-<td style="text-align: center;">Inf</td>
+<td style="text-align: center;">India</td>
+<td style="text-align: center;">2005</td>
+<td style="text-align: center;">1,154,676,322</td>
+<td style="text-align: center;">1,465,325</td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">Ecuador</td>
-<td style="text-align: center;">1955</td>
-<td style="text-align: center;">4,006,188</td>
-<td style="text-align: center;">Inf</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">Ecuador</td>
-<td style="text-align: center;">1960</td>
-<td style="text-align: center;">4,590,891</td>
-<td style="text-align: center;">Inf</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">Palau</td>
-<td style="text-align: center;">1965</td>
-<td style="text-align: center;">10,547</td>
-<td style="text-align: center;">Inf</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">Sierra Leone</td>
+<td style="text-align: center;">India</td>
 <td style="text-align: center;">2000</td>
-<td style="text-align: center;">4,423,611</td>
-<td style="text-align: center;">Inf</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">Turks and Caicos</td>
-<td style="text-align: center;">1960</td>
-<td style="text-align: center;">5,599</td>
-<td style="text-align: center;">Inf</td>
+<td style="text-align: center;">1,057,922,733</td>
+<td style="text-align: center;">1,339,143</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">Turks and Caicos</td>
-<td style="text-align: center;">1965</td>
-<td style="text-align: center;">5,658</td>
-<td style="text-align: center;">Inf</td>
+<td style="text-align: center;">India</td>
+<td style="text-align: center;">1995</td>
+<td style="text-align: center;">960,301,044</td>
+<td style="text-align: center;">1,215,571</td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">Turks and Caicos</td>
-<td style="text-align: center;">1970</td>
-<td style="text-align: center;">5,667</td>
-<td style="text-align: center;">Inf</td>
+<td style="text-align: center;">India</td>
+<td style="text-align: center;">1990</td>
+<td style="text-align: center;">864,972,221</td>
+<td style="text-align: center;">1,094,902</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">Turks and Caicos</td>
+<td style="text-align: center;">India</td>
+<td style="text-align: center;">1985</td>
+<td style="text-align: center;">772,647,793</td>
+<td style="text-align: center;">994,399</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">India</td>
+<td style="text-align: center;">1980</td>
+<td style="text-align: center;">687,354,025</td>
+<td style="text-align: center;">874,496</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Curacao</td>
+<td style="text-align: center;">2020</td>
+<td style="text-align: center;">17,636,731</td>
+<td style="text-align: center;">839,844</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Curacao</td>
+<td style="text-align: center;">2015</td>
+<td style="text-align: center;">17,107,433</td>
+<td style="text-align: center;">814,640</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">India</td>
 <td style="text-align: center;">1975</td>
-<td style="text-align: center;">6,463</td>
-<td style="text-align: center;">Inf</td>
+<td style="text-align: center;">611,309,535</td>
+<td style="text-align: center;">802,243</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Curacao</td>
+<td style="text-align: center;">2010</td>
+<td style="text-align: center;">16,771,235</td>
+<td style="text-align: center;">762,329</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Curacao</td>
+<td style="text-align: center;">2005</td>
+<td style="text-align: center;">16,465,710</td>
+<td style="text-align: center;">748,441</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Curacao</td>
+<td style="text-align: center;">2000</td>
+<td style="text-align: center;">16,058,760</td>
+<td style="text-align: center;">729,944</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
 <p>This table illustrates how population and representation levels change over time for different countries. This can highlight changes in historical, geopolitical trends, such as the rise of democratic nations over the past seventy years, and the challenges of some countries with overcoming monarchic structures.</p>
-</section>
-<section id="tab-3" class="level3">
-<h3 class="anchored" data-anchor-id="tab-3">Tab</h3>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1057,9 +1023,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>This table summarizes the average democracy score for each country. It provides a simplified measure of long-term democratic performance across nations. Looking at each spatial democracy score for 70 total years can be tough to digest, so getting an average look over the recorded history gives us a good preliminary look into the performance of a country. We do recognize however, that average does not provide a comprehensive look into the country’s quality of democracy. For example, countries like Japan, South Korea, and former USSR countries had quick turnaround to democratic structures.</p>
-</section>
-<section id="vis-2" class="level3">
-<h3 class="anchored" data-anchor-id="vis-2">Vis</h3>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1116,9 +1079,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>This scatter plot shows a clear positive relationship between democracy and well-being. Countries with higher democracy scores tend to have higher average well-being. This is a very important visualization because we can obtain a preliminary sense of an answer to our question, that yes, a good quality democracy does tend to bolster the happiness and well-being of its constituents. Therefore, if this does prove to be statistically true, then the next important task becomes finding ways to improve the quality of a democracy to foster well-being.</p>
-</section>
-<section id="vis-3" class="level3">
-<h3 class="anchored" data-anchor-id="vis-3">Vis</h3>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1153,9 +1113,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>This visualization shows that countries with higher levels of democracy generally have higher and more consistent well-being scores. The upward shift in medians reinforces the positive association. This is largely just a different angle of the same conclusion that a high quality democracy is associated with a higher average well-being. Again, this gives us further reason to conduct a statistical test to determine whether or not democracy level is truly associated with well being.</p>
-</section>
-<section id="model" class="level3">
-<h3 class="anchored" data-anchor-id="model">Model</h3>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1222,7 +1179,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The intercept of 4.547 represents the predicted well-being score when the democracy index is zero. This value is useful in practice, as some countries we are investigating have democracy indices of zero, so it serves as a baseline for the model.</p>
 <p>Overall, these results support the conclusion that countries with higher levels of democracy tend to exhibit higher levels of well-being, reinforcing the idea that democratic structures may be associated with improved quality of life.</p>
 <p>However, this model does not imply causation, and other factors such as economic development or regional differences may also influence well-being.</p>
-</section>
 </section>
 
 </main>

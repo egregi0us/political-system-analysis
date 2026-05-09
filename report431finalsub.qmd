@@ -388,6 +388,7 @@ The data pertaining to this research question was read in through a csv file acc
 ```{r}
 final_df <- final_df %>%
   filter(is_democracy==TRUE)%>%
+  filter(!pop_prop==Inf)%>%
   mutate(pop_prop = population/rowSums(cbind(upper_house_members,lower_house_members, third_house_members), na.rm=TRUE))
 ```
 
@@ -411,7 +412,7 @@ final_df %>%
   )
 ```
 
-This table illustrates how population and representation levels change over time for different countries. This can highlight changes in historical, geopolitical trends, such as the rise of democratic nations over the past seventy years, and the challenges of some countries with overcoming monarchic structures. 
+This table illustrates how population and representation levels change over time for different countries. This can highlight changes in historical and geopolitical trends, such as the rise of democratic nations over the past seventy years, and the challenges of some countries with overcoming monarchic structures. Since we are measuring in people per representative, this selection shows the least representative countries adjusted per population. Overall, we can see evolution of a country's structure by the progression of their representation numbers every five years.
 
 
 ```{r}
