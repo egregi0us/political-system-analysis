@@ -363,7 +363,7 @@ plot_grid(title_theme,
 )
 ```
 
-These plots show how both democracy scores and representation levels vary across regions. This is useful to us because we can see how spatial democracy and representation are distributed by continent. This can help us spot out meaningful differences not just between countries in the data summaries before, but also by continent. Continental patterns can lead to more questions such as what factors that are present continent wide can lead to such disparities? A famous example of these sorts of questions are present in "Guns, Germs, and Steel" by Jared Diamond, where he attributes the disparities between Africa and parts of Asia to the presence of certain crops and livestock, as well as geographical differences.
+These plots show how both democracy scores and representation levels vary across regions. This is useful to us because we can see how spatial democracy and representation are distributed by continent. Continental patterns can lead to more questions such as what factors that are present continent wide can lead to such disparities? A famous example of these sorts of questions are present in "Guns, Germs, and Steel" by Jared Diamond, where he attributes the disparities between Africa and parts of Asia to the presence of certain crops and livestock, as well as geographical differences.
 
 
 ```{r}
@@ -382,7 +382,7 @@ This scatterplot shows a wide spread in democracy scores across different levels
 
 ## Does the quality of a country's democracy even relate to their overall happiness?
 
-The data pertaining to this research question was read in through a csv file accessed through the World Bank website. It contains the Human Development Indexes of every country. HDI is a rough measurement of the quality of life in countries, broken down into three main measurements; years of education, life expectancy, and gross national income. This was of great use because we wanted to see the connection between the spatial democracy index and happiness index of a country. We wanted to do this because this could help us with a greater connection between greater representation and the happiness/well-being of a country.
+The data pertaining to this research question was read in through a csv file accessed through the World Bank website. It contains the Human Development Indexes of every country. This was of great use because we wanted to see the connection between the spatial democracy index and happiness index of a country. We wanted to do this because this could help us with a greater connection between greater representation and the happiness/well-being of a country.
 
 
 ```{r}
@@ -446,7 +446,7 @@ avg_df %>%
   )
 ```
 
-This table summarizes the average democracy score for each country. It provides a simplified measure of long-term democratic performance across nations. Looking at each spatial democracy score for 70 total years can be tough to digest, so getting an average look over the recorded history gives us a good preliminary look into the performance of a country. We do recognize however, that average does not provide a comprehensive look into the country's quality of democracy. For example, countries like Japan, South Korea, and former USSR countries had quick turnaround to democratic structures. 
+This table summarizes the average democracy score for each country. It provides a simplified measure of long-term democratic performance across nations. We do recognize however, that average does not provide a comprehensive look into the country's quality of democracy. For example, countries like Japan, South Korea, and former USSR countries had quick turnaround to democratic structures. 
 
 
 ```{r}
@@ -494,7 +494,7 @@ scatter1 <- ggplot(
 scatter1
 ```
 
-This scatter plot shows a clear positive relationship between democracy and well-being. Countries with higher democracy scores tend to have higher average well-being. This is a very important visualization because we can obtain a preliminary sense of an answer to our question, that yes, a good quality democracy does tend to bolster the happiness and well-being of its constituents. Therefore, if this does prove to be statistically true, then the next important task becomes finding ways to improve the quality of a democracy to foster well-being.
+This scatter plot shows a clear positive relationship between democracy and well-being. This is a very important visualization because we can obtain a preliminary sense of an answer to our question, that yes, a good quality democracy does tend to bolster the happiness and well-being of its constituents. Therefore, if this does prove to be statistically true, then the next important task becomes finding ways to improve the quality of a democracy to foster well-being.
 
 
 ```{r}
