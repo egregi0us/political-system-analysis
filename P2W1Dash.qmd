@@ -1,0 +1,438 @@
+---
+title: "Unit 1 Project: Geopolitical System Analysis"
+format:
+  dashboard:
+    theme: cosmo
+    fill: true
+    orientation: columns
+    logo: globe-logo.jpeg
+    nav-buttons:
+        - icon: instagram
+          href: https://instagram.com/talanwilliams_
+        - icon: instagram
+          href: https://instagram.com/Rnello52
+        - icon: instagram
+          href: https://instagram.com/gycowles
+    embed-resources: true
+---
+
+
+```{r}
+#| eval: false
+install.packages("tidytuesdayR")
+```
+
+```{r}
+#| output: false
+library(tidytuesdayR)
+tuesdata <- tidytuesdayR::tt_load('2024-11-05')
+library(tidyverse)
+```
+
+```{r}
+dem_df<- tuesdata$democracy_data
+```
+
+
+```{r}
+#| output: false
+library(httr)
+library(tidyjson)
+library(jsonlite)
+library(tidyverse)
+library(glue)
+library(readxl)
+library(ggrepel)
+library(scales)
+library(leaflet)
+library(sf)
+library(tigris)
+
+```
+
+```{r}
+pop_data <- read_rds("pop_data.rds")
+```
+
+```{r}
+clean_df <- pop_data %>%
+  keep(~ length(.x)>0) %>%
+  map(~.x %>% select(country, year,population)) %>%
+  bind_rows()
+```
+
+```{r}
+dem2_df <- dem_df %>%
+  filter(year>=1955 & year%%5==0)%>%
+  rename(country = "country_name")
+```
+
+```{r}
+clean2_df <- clean_df %>%
+  filter(year%%5==0) %>%
+  arrange(country, year)
+```
+
+```{r}
+final_df <- left_join(dem2_df, clean2_df, by = c("country", "year"))
+```
+
+```{r}
+final_df <- final_df %>%
+  filter(is_democracy==TRUE)%>%
+  mutate(pop_prop = population/rowSums(cbind(upper_house_members,lower_house_members, third_house_members), na.rm=TRUE))
+
+```
+
+
+
+```{r}
+happiness <- read_csv("~/Documents/stat 431/geopolitical-government-type-analysis/whr_data.csv")
+# I'm not sure why there are empty columns beyond those we are using, the file very clearly only had 13 columns. I don't think this should be an issue, but we're not gonna be using that whole dataset anyway.
+```
+
+```{r}
+happiness_clean <- happiness %>%
+  select(
+    country_name = `Country name`,
+    year = Year,
+    well_being = `Life evaluation (3-year average)`)
+
+#find the years that both this data set and the dem_df covers, and then we'll filter the sets to match those years
+
+
+dem_overlap <- dem_df %>%
+  filter(year >= 2011)
+happiness_overlap <- happiness_clean %>%
+  filter(year <= 2020)
+
+# now we merge them into one data frame
+#hdiXdem_df <- dem_overlap %>%
+  #left_join(happiness_overlap, by = c("country_name", "year"))
+
+
+# this will weed out the countries that we weren't able to directly match by name
+# hdiXdem_df %>%
+# filter(is.na(well_being)) %>%
+#  distinct(country_name) %>%
+#  arrange(country_name)
+# so that gave 208 countries which surprised me because the names looked the same to me. this makes me believe i messed up on the joining of the dataframes.
+# i'm gonna try the join again, only based off name, not year as well
+
+# hdiXdem_df <- dem_overlap %>%
+ # left_join(happiness_overlap, by = "country_name")
+
+# okay that isn't what we want either, that gives us a many to many dataframe, which is bad, so what I'll do is take the average of the happiness index and democracy index across the years and compare those. For reference, we don't want the many to many dataframe because it has 13010 rows.
+
+# average of both data frames
+avg_dem <- dem_overlap %>%
+  group_by(country_name) %>%
+  summarize(avg_democracy = mean(spatial_democracy, na.rm = TRUE))
+
+avg_happiness <- happiness_overlap %>%
+  group_by(country_name) %>%
+  summarize(avg_well_being = mean(well_being, na.rm = TRUE))
+
+# new dataframe
+
+hdiXdem_df <- avg_dem %>%
+  left_join(avg_happiness, by = "country_name")
+
+
+#so that gives us 60 countries that are not in our happiness set that are in the democracy set. What we'll do now is use anti_join to see what countries are in the democracy set that are not in the happiness set, and vice versa.
+
+dem_not_happy <- anti_join(avg_dem, avg_happiness, by = "country_name")
+happy_not_dem <- anti_join(avg_happiness, avg_dem, by = "country_name")
+
+# after looking through it, it seems that the countries that were in dem_not_happy were a lot of small, island based nation states that don't necessarily need to be included for this to be a fair comparison. The countries in happy_not_dem were all countries with names that may be different between the two sets. these are the countries we will recode. Using my own imperfect analysis, I have chosen the countries I will use from this list of unmatched country names, and I will use this to find the names for those countries in the democracy df
+
+
+# now that we know the names of all the countries that we want in both data sets, I will fix the happiness dataset to match the names from the democracy set, and then we will use an inner join to only get the countries that we want.
+
+country_fix_happiness <- c(
+  "Congo" = "Congo, Republic of",
+  "Czechia" = "Czech Republic",
+  "Côte d’Ivoire" = "Ivory Coast",
+  "DR Congo" = "Congo, Dem. Rep.",
+  "Gambia" = "Gambia, The",
+  "Hong Kong SAR of China" = "Hong Kong",
+  "Lao PDR" = "Laos",
+  "Republic of Korea" = "Korea, Republic of",
+  "Republic of Moldova" = "Moldova",
+  "Russian Federation" = "Russia",
+  "Slovakia" = "Slovak Republic",
+  "State of Palestine" = "Palestine",
+  "Taiwan Province of China" = "Taiwan",
+  "Trinidad and Tobago" = "Trinidad &Tobago",
+  "Türkiye" = "Turkey",
+  "Viet Nam" = "Vietnam")
+
+avg_happiness_fixed <- happiness_overlap %>%
+  mutate(country_name = recode(country_name, !!!country_fix_happiness)) %>%
+  group_by(country_name) %>%
+  summarize(avg_well_being = mean(well_being, na.rm = TRUE), .groups = "drop")
+
+hdiXdem_df <- avg_dem %>%
+  inner_join(avg_happiness_fixed, by = "country_name")
+
+```
+
+# Global Data
+
+## Research Question 1 {.tabset}
+
+### Tables
+
+:::: {.rows}
+
+::: {.card height="50%" style="overflow: visible;"}
+
+```{r}
+avg_dem <- function(country) {
+  dem_df %>%
+    filter(country_name == country) %>%
+    summarize(avg = mean(spatial_democracy, na.rm = TRUE)) %>%
+    pull(avg)
+}
+
+avg_df <- dem_df %>%
+  distinct(country_name) %>%
+  mutate(Average_Democracy = map_dbl(country_name, avg_dem))
+
+```
+
+```{r}
+avg_df %>%
+  slice_max(order_by = Average_Democracy, n = 30) %>%
+  mutate(
+    Average_Democracy = round(Average_Democracy, 3)
+  ) %>%
+  knitr::kable(
+    col.names = c(
+      "Country",
+      "Average Democracy Score"
+    ),
+    caption = "Average spatial democracy score by country.",
+    align = "c"
+  )
+```
+:::
+
+::: {.card height="50%"}
+```{r}
+dem_index <- read.csv("https://raw.githubusercontent.com/egregi0us/political-system-analysis/refs/heads/main/democracy-index-eiu.csv")
+
+dem_index2 <- dem_index %>%
+  rename(country = "Entity")%>%
+  rename(year="Year")%>%
+  filter(year>2006 & year%%5==0)
+```
+
+```{r}
+finalest_df <- final_df %>%
+  filter(!pop_prop == Inf)
+```
+
+```{r}
+finalestest_df <- left_join(finalest_df, dem_index2, by = c("country","year"))
+```
+
+```{r}
+finalestest_df <- finalestest_df %>%
+  filter(year>2005)%>%
+  filter(!is.na(Democracy.Index))
+
+```
+
+```{r}
+finalestest_df %>%
+  select(country, year, spatial_democracy, Democracy.Index, population, pop_prop) %>%
+  slice_max(order_by = Democracy.Index, n = 30) %>%
+  mutate(
+    spatial_democracy = round(spatial_democracy, 3),
+    Democracy.Index = round(Democracy.Index, 3),
+    population = scales::comma(population),
+    pop_prop = scales::comma(round(pop_prop, 0))
+  ) %>%
+  knitr::kable(
+    col.names = c(
+      "Country",
+      "Year",
+      "Spatial Democracy",
+      "Democracy Index",
+      "Population",
+      "People per Representative"
+    ),
+    caption = "Democracy, population, and representation summary for selected countries.",
+    align = "c"
+  )
+```
+:::
+
+::::
+
+### Model Summary
+
+::: {.card}
+
+```{r}
+final_df <- final_df %>%
+  filter(pop_prop != Inf)
+```
+
+```{r}
+spat_model <- lm(spatial_democracy~pop_prop, data = final_df)
+
+summary(spat_model)
+```
+
+:::
+
+## Visualizations {.tabset}
+
+### Dynamic Visualization
+<span style="font-size: 1em;">
+Is there a significant relationship between spatial democracy index and population adjusted representation (people per representative)?
+</span>
+```{r}
+library(countrycode)
+vis2 <- final_df |>
+  select(country, spatial_democracy, pop_prop) |>
+  mutate(region = countrycode(country,
+                              origin = "country.name",
+                              destination = "continent")) |>
+  filter(!pop_prop==Inf)
+```
+
+
+```{r}
+#| warning: false
+library(plotly)
+
+dyn_plot <- ggplot(vis2, aes(log(pop_prop),spatial_democracy,color = region))+
+  geom_jitter()+
+  geom_density_2d()+
+  labs(
+    xlab = "Population Adjusted Representation (People/Representative)",
+    ylab = "Spatial Democracy Score",
+    title = "Spatial Democracy Score vs. Population Adjusted Representation"
+  )
+
+ggplotly(dyn_plot)
+```
+
+### Other Visualizations
+:::: {.rows}
+::: {.card}
+
+```{r}
+#| warning: false
+library(cowplot)
+library(ggridges)
+library(scales)
+title_theme <- ggdraw() +
+  draw_label("Spatial Democracy Versus Person per Representative by Region",
+    fontfamily = "Courier",
+    fontface = "bold",
+    size = 9,
+    hjust = 0.42
+  )
+
+spa_dem <- ggplot(vis2, aes(x = spatial_democracy,
+                            y = reorder(region, spatial_democracy),
+                            fill = region)) +
+  geom_density_ridges(alpha = 0.7, color = "black", scale = 1) + 
+  scale_x_continuous(limits = c(0, 1)) +
+  labs(x = "Spatial Democracy Index",
+       y = " ") +
+  scale_fill_brewer(palette = "Dark2") +
+  guides(fill = "none")
+
+pop_dem <- ggplot(vis2, aes(x = pop_prop,
+                            y = reorder(region, pop_prop),
+                            fill = region)) +
+  geom_density_ridges(alpha = 0.7, color = "black", scale = 1) +
+  scale_x_continuous(limits = c(0, 50000), labels = label_number(scale_cut = cut_short_scale())) +
+  labs(x = "Person per Rep",
+       y = " ") +
+  scale_fill_brewer(palette = "Dark2") +
+  guides(fill = "none")
+
+gridofplots <- plot_grid(spa_dem, pop_dem, nrow = 1)
+
+plot_grid(title_theme,
+  gridofplots,
+  ncol = 1, rel_heights = c(0.2, 1.5, 0.1)
+)
+```
+
+:::
+
+::: {.card}
+```{r}
+#| warning: false
+final_df %>%
+  ggplot(aes(x=pop_prop, y = spatial_democracy)) +
+  geom_jitter(height=0.1,alpha = 0.3) +
+  scale_x_log10() +
+  geom_smooth(method= "lm") +
+  labs(
+    x = "Population Proportion",
+    y = "Spatial Democracy",
+    title = "Jitter Plot, Population Proportion v. Spatial Democracy"
+  )
+```
+:::
+::::
+
+
+# Specialty Country: USA
+
+## Why this country?
+
+I chose the **United States** because it is a large federal democracy that shows patterns relating to global trends. This makes it a useful representation of democracy trends in the modern day first world. The map below shows the democracy index of each US state, ranging from less than -1.5 to greater than 1.
+
+### Country Data
+
+```{r}
+states_dem <- read.csv(file = "SDI_2.0.csv")
+states_dem <- states_dem |>
+  group_by(state) |>
+  summarize(dem_index = mean(democracy_mcmc))
+```
+
+```{r}
+#| results: hide
+states <- states(cb = TRUE, year = 2020)
+states_joined <- states |>
+  left_join(states_dem, by = c("NAME" = "state"))
+pal <- colorNumeric(
+  palette = "Blues",
+  domain = states_joined$dem_index,
+  na.color = "transparent"
+)
+```
+
+
+```{r}
+#| message: false
+#| warning: false
+
+leaflet(states_joined) |>
+  addTiles() |>
+  setView(lng = -98.35, lat = 39.5, zoom = 4) |>
+  addPolygons(
+    fillColor = ~pal(dem_index),
+    fillOpacity = 0.7,
+    color = "white",
+    weight = 1,
+    popup = ~paste0(NAME, ": ", round(dem_index, 2))
+  ) |>
+  addLegend(
+    pal = pal,
+    values = ~dem_index,
+    title = "Democracy Score",
+    position = "bottomright"
+  )
+```
+
