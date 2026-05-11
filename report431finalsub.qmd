@@ -3,7 +3,7 @@ title: "Uncap the House! The Case for Increased Representation"
 format: html
 theme: cosmo
 editor: visual
-embed_resources: true
+embed-resources: true
 code-fold: true
 ---
 
