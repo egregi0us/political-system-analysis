@@ -2,19 +2,20 @@
 title: "Unit 1 Project: Geopolitical System Analysis"
 format:
   dashboard:
-    theme: cosmo
+    theme: solar
     fill: true
     orientation: columns
-    navbar:
-      right:
+    logo: globe-logo.jpeg
+    nav-buttons:
         - icon: instagram
-          href: https://instagram.com/talanwillams_
+          href: https://instagram.com/talanwilliams_
         - icon: instagram
           href: https://instagram.com/Rnello52
-    logo: globe-logo.jpeg
+        - icon: instagram
+          href: https://instagram.com/gycowles
     embed-resources: true
+server: shiny
 ---
-
 
 ```{r}
 #| eval: false
@@ -32,8 +33,12 @@ library(tidyverse)
 dem_df<- tuesdata$democracy_data
 ```
 
+```{r}
+#| label: setup
 
-
+library(shiny)
+library(tidyverse)
+```
 
 ```{r}
 #| output: false
@@ -45,42 +50,10 @@ library(glue)
 library(readxl)
 library(ggrepel)
 library(scales)
-```
+library(leaflet)
+library(sf)
+library(tigris)
 
-```{r}
-base_url <- "https://api.api-ninjas.com/v1/population"
-
-api <- "T3YcM1il6uhoPDhXBQP5XYgMnkY40zEF6boE3DBn"
-```
-
-```{r}
-
-get_pop_data <- function(country) {
-  country_url <- glue("{base_url}?country={URLencode(country)}")
-  countries <- GET(country_url, add_headers("X-Api-Key" = api))
-  tx <- content(countries, "text", encoding = "UTF-8")
-  if (tx==""){
-    return(NA)
-  }
-  countries_data <- fromJSON(tx)
-  if(is.null(countries_data$historical_population)) {
-    return(NULL)
-  }
-  countries_data <- countries_data$historical_population %>%
-    mutate(country = country)
-  return(countries_data)
-}
-
-```
-
-```{r}
-#|eval: false
-pop_data <- map(unique(dem_df$country_name), .f = get_pop_data)
-```
-
-```{r}
-#| eval: false
-saveRDS(pop_data,"pop_data.rds")
 ```
 
 ```{r}
@@ -210,45 +183,123 @@ hdiXdem_df <- avg_dem %>%
 
 ```
 
+# Global Data
 
 ## Research Question 1 {.tabset}
 
-### 1st Table and Visualization
+### Tables
 
 :::: {.rows}
 
 ::: {.card height="50%" style="overflow: visible;"}
-<span style="font-size: 0.75em;">
-Research Question 1: Is there a significant relationship between spatial democracy index and population adjusted representation (people per representative)?
-</span>
+
 ```{r}
-#| out.extra: 'style="margin-top:0;"'
-democracy_data <- tuesdata$democracy_data
-countries <- unique(democracy_data$country_name)
-total_reps <- numeric(length(countries))
+avg_dem <- function(country) {
+  dem_df %>%
+    filter(country_name == country) %>%
+    summarize(avg = mean(spatial_democracy, na.rm = TRUE)) %>%
+    pull(avg)
+}
 
-for (i in seq_along(countries)) {
-  this_country <- countries[i]
-  
-  total_reps[i] <- sum(
-    democracy_data$lower_house_members[democracy_data$country_name == this_country],
-    na.rm = TRUE)}
+avg_df <- dem_df %>%
+  distinct(country_name) %>%
+  mutate(Average_Democracy = map_dbl(country_name, avg_dem))
 
-country_rep_summary <- data.frame(
-  country_name = countries,
-  total_lower_house_members = total_reps)
+```
 
-country_rep_summary <- country_rep_summary[order(-country_rep_summary$total_lower_house_members), ]
-
-
-knitr::kable(
-  head(country_rep_summary, 20),
-  col.names = c("Country", "Total Lower House Members"),
-  caption = "Total lower house members by country")
+```{r}
+avg_df %>%
+  slice_max(order_by = Average_Democracy, n = 30) %>%
+  mutate(
+    Average_Democracy = round(Average_Democracy, 3)
+  ) %>%
+  knitr::kable(
+    col.names = c(
+      "Country",
+      "Average Democracy Score"
+    ),
+    caption = "Average spatial democracy score by country.",
+    align = "c"
+  )
 ```
 :::
 
 ::: {.card height="50%"}
+```{r}
+dem_index <- read.csv("https://raw.githubusercontent.com/egregi0us/political-system-analysis/refs/heads/main/democracy-index-eiu.csv")
+
+dem_index2 <- dem_index %>%
+  rename(country = "Entity")%>%
+  rename(year="Year")%>%
+  filter(year>2006 & year%%5==0)
+```
+
+```{r}
+finalest_df <- final_df %>%
+  filter(!pop_prop == Inf)
+```
+
+```{r}
+finalestest_df <- left_join(finalest_df, dem_index2, by = c("country","year"))
+```
+
+```{r}
+finalestest_df <- finalestest_df %>%
+  filter(year>2005)%>%
+  filter(!is.na(Democracy.Index))
+
+```
+
+```{r}
+finalestest_df %>%
+  select(country, year, spatial_democracy, Democracy.Index, population, pop_prop) %>%
+  slice_max(order_by = Democracy.Index, n = 30) %>%
+  mutate(
+    spatial_democracy = round(spatial_democracy, 3),
+    Democracy.Index = round(Democracy.Index, 3),
+    population = scales::comma(population),
+    pop_prop = scales::comma(round(pop_prop, 0))
+  ) %>%
+  knitr::kable(
+    col.names = c(
+      "Country",
+      "Year",
+      "Spatial Democracy",
+      "Democracy Index",
+      "Population",
+      "People per Representative"
+    ),
+    caption = "Democracy, population, and representation summary for selected countries.",
+    align = "c"
+  )
+```
+:::
+
+::::
+
+### Model Summary
+
+::: {.card}
+
+```{r}
+final_df <- final_df %>%
+  filter(pop_prop != Inf)
+```
+
+```{r}
+spat_model <- lm(spatial_democracy~pop_prop, data = final_df)
+
+summary(spat_model)
+```
+
+:::
+
+## Visualizations {.tabset}
+
+### Dynamic Visualization
+<span style="font-size: 1em;">
+Is there a significant relationship between spatial democracy index and population adjusted representation (people per representative)?
+</span>
 ```{r}
 library(countrycode)
 vis2 <- final_df |>
@@ -258,6 +309,27 @@ vis2 <- final_df |>
                               destination = "continent")) |>
   filter(!pop_prop==Inf)
 ```
+
+
+```{r}
+#| warning: false
+library(plotly)
+
+dyn_plot <- ggplot(vis2, aes(log(pop_prop),spatial_democracy,color = region))+
+  geom_jitter()+
+  geom_density_2d()+
+  labs(
+    xlab = "Population Adjusted Representation (People/Representative)",
+    ylab = "Spatial Democracy Score",
+    title = "Spatial Democracy Score vs. Population Adjusted Representation"
+  )
+
+ggplotly(dyn_plot)
+```
+
+### Other Visualizations
+:::: {.rows}
+::: {.card}
 
 ```{r}
 #| warning: false
@@ -299,41 +371,7 @@ plot_grid(title_theme,
   ncol = 1, rel_heights = c(0.2, 1.5, 0.1)
 )
 ```
-:::
 
-::::
-
-### 2nd Table and Visualization
-
-:::: {.rows}
-
-::: {.card}
-
-```{r}
-dem_index <- read.csv("democracy-index-eiu.csv")
-
-dem_index2 <- dem_index %>%
-  rename(country = "Entity")%>%
-  rename(year="Year")%>%
-  filter(year>2006 & year%%5==0)
-```
-
-```{r}
-finalest_df <- final_df %>%
-  filter(!pop_prop == Inf)
-```
-
-```{r}
-finalestest_df <- left_join(finalest_df, dem_index2, by = c("country","year"))
-```
-
-```{r}
-finalestest_df <- finalestest_df %>%
-  filter(year>2005)%>%
-  filter(!is.na(Democracy.Index))
-
-head(finalestest_df[c("country","year","Democracy.Index")])
-```
 :::
 
 ::: {.card}
@@ -352,131 +390,123 @@ final_df %>%
 ```
 :::
 
-::::
 
-### Model Summary
+```{r}
+#| context: setup
+library(ggplot2)
+library(shiny)
+```
+
+# {.sidebar}
+
+
+```{r}
+selectInput('rep', 'Level of Representation', choices = c("High", "Moderate", "Low")) 
+```
+
 ::: {.card}
-```{r}
-final_df <- final_df %>%
-  filter(pop_prop != Inf)
-```
+
+# Plot
 
 ```{r}
-spat_model <- lm(spatial_democracy~pop_prop, data = final_df)
-
-summary(spat_model)
+plotOutput('plot')
 ```
+
 :::
 
-## Research Question 2 {.tabset}
-
-### 1st Table and Visualization
-
-:::: {.rows}
-::: {.card}
-<span style="font-size: 0.75em;">
-Research Question 2: Is there a significant relationship between spatial democracy index and happiness development index?
-</span>
-```{r}
-final_df <- final_df %>%
-  filter(is_democracy==TRUE)%>%
-  mutate(pop_prop = population/rowSums(cbind(upper_house_members,lower_house_members, third_house_members), na.rm=TRUE))
-
-head(final_df[c("country", "year", "population","pop_prop")])
-```
-:::
-
-::: {.card}
 
 ```{r}
-# Identifying which countries to label:
-top_wb  <- hdiXdem_df %>% slice_max(avg_well_being, n = 3, with_ties = FALSE)
-low_wb  <- hdiXdem_df %>% slice_min(avg_well_being, n = 3, with_ties = FALSE)
-top_dem <- hdiXdem_df %>% slice_max(avg_democracy, n = 2, with_ties = FALSE)
-low_dem <- hdiXdem_df %>% slice_min(avg_democracy, n = 2, with_ties = FALSE)
+#| context: server
 
-label_countries <- bind_rows(top_wb, low_wb, top_dem, low_dem) %>%
-  distinct(country_name, .keep_all = TRUE)
-```
-
-```{r}
-scatter1 <- ggplot(
-  hdiXdem_df,
-  aes(x = avg_democracy, y = avg_well_being)
-) +
-  geom_point(size = 2.8, alpha = 0.85, color = "steelblue") +
-  geom_smooth(method = "lm", se = FALSE, linewidth = 1, color = "orange") +
-  geom_text_repel(
-    data = label_countries,
-    aes(label = country_name),
-    size = 3,
-    max.overlaps = 20
-  ) +
-  scale_x_continuous(labels = scales::number_format(accuracy = 0.1)) +
-  scale_y_continuous(labels = scales::number_format(accuracy = 0.1)) +
-  labs(
-    title = "Democracy and Well-Being Are Positively Associated",
-    subtitle = "Country averages from 2011 to 2020",
-    x = "Average Spatial Democracy Score",
-    y = "Average Well-Being Score"
-  ) +
-  theme_minimal(base_size = 12) +
-  theme(
-    plot.title = element_text(face = "bold")
-  )
-
-```
-
-```{r}
-#| fig-alt: Scatter plot of average spatial democracy scores versus average well-being for countries between 2011 and 2020. Each point represents a country. The points form an upward pattern, indicating that countries with higher democracy scores tend to have higher average well-being. A few countries at the high end are Finland, Switzerland, and Australia, and a few countries at the low end are Burundi, Central African Republic, and South Sudan.
-scatter1
-```
-:::
-::::
-
-### 2nd Table and Visualization
-:::: {.rows}
-::: {.card}
-```{r}
-avg_dem <- function(country) {
-  dem_df %>%
-    filter(country_name == country) %>%
-    summarize(avg = mean(spatial_democracy, na.rm = TRUE)) %>%
-    pull(avg)
-}
-
-avg_df <- dem_df %>%
-  distinct(country_name) %>%
-  mutate(Average_Democracy = map_dbl(country_name, avg_dem))
-
-head(avg_df)
-```
-:::
-
-::: {.card}
-```{r}
-#| fig-cap: "Distribution of well-being across different levels of democracy."
-
-hdiXdem_df %>%
+shiny_df <- vis2 %>%
+  filter(pop_prop!=0)%>%
   mutate(
-    democracy_group = case_when(
-      avg_democracy < 0.33 ~ "Low",
-      avg_democracy < 0.66 ~ "Medium",
-      TRUE ~ "High"),
-    democracy_group = factor(democracy_group, levels = c("Low", "Medium", "High"))
-  ) %>%
-  ggplot(aes(x = democracy_group, y = avg_well_being, fill = democracy_group)) +
-  geom_boxplot(alpha = 0.7) +
-  labs(
-    title = "Well-Being Increases with Democracy Level",
-    x = "Democracy Level",
-    y = "Average Well-Being"
-  ) +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(face = "bold"),
-    legend.position = "none"
+    pop_prop_log=log(pop_prop)
+  )
+
+shiny_df <- shiny_df %>%
+  mutate(
+    rep_type = case_when(
+      pop_prop_log <= 8 ~ "High",
+      pop_prop_log <=11 ~ "Moderate",
+      pop_prop_log <=17 ~ "Low"
+    )
+  )
+
+data_new <- reactive({
+  shiny_df %>%
+    filter(rep_type==input$rep)
+})
+
+output$plot <- renderPlot({
+  
+  p <- ggplot(
+    data_new(), 
+    aes(x=region, y=spatial_democracy)) + geom_violin()
+  
+  p
+  
+})
+```
+
+
+::::
+
+
+# Specialty Country: USA
+
+## Why this country?
+
+I chose the **United States** because it is a large federal democracy that shows patterns relating to global trends. This makes it a useful representation of democracy trends in the modern day first world. The map below shows the democracy index of each US state, ranging from less than -1.5 to greater than 1.
+
+### Country Data
+
+```{r}
+states_dem <- read.csv(file = "SDI_2.0.csv")
+states_dem <- states_dem |>
+  group_by(state) |>
+  summarize(dem_index = mean(democracy_mcmc))
+```
+
+```{r}
+#| results: hide
+states <- states(cb = TRUE, year = 2020)
+states_joined <- states |>
+  left_join(states_dem, by = c("NAME" = "state"))
+pal <- colorNumeric(
+  palette = "Blues",
+  domain = states_joined$dem_index,
+  na.color = "transparent"
+)
+```
+
+
+```{r}
+#| message: false
+#| warning: false
+
+leaflet(states_joined) |>
+  addTiles() |>
+  setView(lng = -98.35, lat = 39.5, zoom = 4) |>
+  addPolygons(
+    fillColor = ~pal(dem_index),
+    fillOpacity = 0.7,
+    color = "white",
+    weight = 1,
+    popup = ~paste0(NAME, ": ", round(dem_index, 2))
+  ) |>
+  addLegend(
+    pal = pal,
+    values = ~dem_index,
+    title = "Democracy Score",
+    position = "bottomright"
   )
 ```
-:::
-::::
+
+
+
+
+
+
+
+
