@@ -389,34 +389,46 @@ final_df %>%
   )
 ```
 :::
-
+::::
+# Interactive Page
 
 ```{r}
 #| context: setup
 library(ggplot2)
 library(shiny)
-```
+library(tidytuesdayR)
+library(countrycode)
 
-# {.sidebar}
+pop_data <- read_rds("pop_data.rds")
 
+tuesdata <- tidytuesdayR::tt_load('2024-11-05')
+dem_df<- tuesdata$democracy_data
 
-```{r}
-selectInput('rep', 'Level of Representation', choices = c("High", "Moderate", "Low")) 
-```
+clean_df <- pop_data %>%
+  keep(~ length(.x)>0) %>%
+  map(~.x %>% select(country, year,population)) %>%
+  bind_rows()
 
-::: {.card}
+dem2_df <- dem_df %>%
+  filter(year>=1955 & year%%5==0)%>%
+  rename(country = "country_name")
 
-# Plot
+clean2_df <- clean_df %>%
+  filter(year%%5==0) %>%
+  arrange(country, year)
 
-```{r}
-plotOutput('plot')
-```
+final_df <- left_join(dem2_df, clean2_df, by = c("country", "year"))
 
-:::
+final_df <- final_df %>%
+  filter(is_democracy==TRUE)%>%
+  mutate(pop_prop = population/rowSums(cbind(upper_house_members,lower_house_members, third_house_members), na.rm=TRUE))
 
-
-```{r}
-#| context: server
+vis2 <- final_df |>
+  select(country, spatial_democracy, pop_prop) |>
+  mutate(region = countrycode(country,
+                              origin = "country.name",
+                              destination = "continent")) |>
+  filter(!pop_prop==Inf)
 
 shiny_df <- vis2 %>%
   filter(pop_prop!=0)%>%
@@ -428,10 +440,34 @@ shiny_df <- shiny_df %>%
   mutate(
     rep_type = case_when(
       pop_prop_log <= 8 ~ "High",
-      pop_prop_log <=11 ~ "Moderate",
-      pop_prop_log <=17 ~ "Low"
+      pop_prop_log > 8 & pop_prop_log <=11 ~ "Moderate",
+      pop_prop_log >11 & pop_prop_log <=17 ~ "Low"
     )
   )
+
+```
+
+## {.sidebar}
+
+
+```{r}
+selectInput('rep', 'Level of Representation', choices = c("High", "Moderate", "Low")) 
+```
+
+## Plots
+
+::: {.card}
+
+
+```{r}
+plotOutput('plot')
+```
+
+:::
+
+
+```{r}
+#| context: server
 
 data_new <- reactive({
   shiny_df %>%
@@ -449,8 +485,6 @@ output$plot <- renderPlot({
 })
 ```
 
-
-::::
 
 
 # Specialty Country: USA
